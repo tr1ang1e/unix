@@ -5,3 +5,9 @@
    [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
    [b] gcc main.c -L./lib/shared -lunit                                  # -L<path> = path to .so, -l<name> = name of .so  
    [c] export LD_LIBRARY_PATH=./lib/shared/                              # before run programm = temporarily set path to shared library for OS
+
+4. c-program, main + (static library = a)
+   [a] gcc -c ./source/c/unit.c -o ./source/c/unit.o                     # compile programm unit to object file 
+   [b] ar rcs ./lib/static/libunit.a ./source/c/unit.o                   # pack .o into static library (might be several .o files simultaneously)
+   [c] rm ./source/c/unit.o                                              # (optional) remove .o file
+   [d] gcc main.c -L./lib/static -lunit                                  # -L<path> = path to .a, -l<name> = name of .a 
