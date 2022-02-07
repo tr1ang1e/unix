@@ -1,7 +1,7 @@
-#include <stdio.h>
+#include "./include/c/header.h"
 
 int main(int argc, char* argv[])
-{
-  printf("Hello, world!\n");
+{ 
+  message("Hello, world!");
   return 0;
 }
