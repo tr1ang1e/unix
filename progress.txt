@@ -1,2 +1,7 @@
 1. c-programm, 1 file
 2. c-programm, main + (header, unit) files
+
+3. c-programm, main + (dinamic library = so)
+   [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
+   [b] gcc main.c -L./lib/shared -lunit                                  # -L<path> = path to .so, -l<name> = name of .so  
+   [c] export LD_LIBRARY_PATH=./lib/shared/                              # before run programm = temporarily set path to shared library for OS
