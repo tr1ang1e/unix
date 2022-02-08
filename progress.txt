@@ -1,7 +1,7 @@
 1. c-programm, 1 file
 2. c-programm, main + (header, unit) files
 
-3. c-programm, main + (dinamic library = so)
+3. c-programm, main + (dinamic library = so) / compiletime shared library linkage
    [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
    [b] gcc main.c -L./lib/shared -lunit                                  # -L<path> = path to .so, -l<name> = name of .so  
    [c] export LD_LIBRARY_PATH=./lib/shared/                              # before run programm = temporarily set path to shared library for OS
@@ -19,4 +19,9 @@
        .PHONY                                                            # target that doesn't name a file  
        <command>     ( without target and tab )                          # will be executed independently
        CC=gcc        ( without target and tab )                          # usage = $(CC)
+   [d] attention ! every command executes in separate shell ! might be changed using .ONESHELL
+
+6. c-programm, main + (dinamic library = so) / runtime shared library linkage
+   [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
+   [b] gcc main.c -ldl                                                   # dl = special system library for runtime linkage (dlopen, dlsym)                                               
        
