@@ -11,3 +11,12 @@
    [b] ar rcs ./lib/static/libunit.a ./source/c/unit.o                   # pack .o into static library (might be several .o files simultaneously)
    [c] rm ./source/c/unit.o                                              # (optional) remove .o file
    [d] gcc main.c -L./lib/static -lunit                                  # -L<path> = path to .a, -l<name> = name of .a 
+
+5. makefile
+   [a] syntax = target: dependencies
+   [b] usage = make <target>
+   [c] additional = 
+       .PHONY                                                            # target that doesn't name a file  
+       <command>     ( without target and tab )                          # will be executed independently
+       CC=gcc        ( without target and tab )                          # usage = $(CC)
+       
