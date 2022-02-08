@@ -23,5 +23,7 @@
 
 6. c-programm, main + (dinamic library = so) / runtime shared library linkage
    [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
-   [b] gcc main.c -ldl                                                   # dl = special system library for runtime linkage (dlopen, dlsym)                                               
+   [b] gcc main.c -ldl                                                   # dl = special system library for runtime linkage (dlopen, dlsym)  
+   [c] attention ! if there are only lib name (not path) in dlopen(...) , should use  `export LD_LIBRARY_PATH=<path>` 
+                                                                                  or   gcc ...  -Wl,-rpath,<path> ...                                            
        
