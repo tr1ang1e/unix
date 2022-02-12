@@ -43,6 +43,4 @@ int main(int argc, char* argv[])
   {
     printf("shared library or required function cannot be found\n");
   }
-
-  return 0;
 }

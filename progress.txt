@@ -26,4 +26,82 @@
    [b] gcc main.c -ldl                                                   # dl = special system library for runtime linkage (dlopen, dlsym)  
    [c] attention ! if there are only lib name (not path) in dlopen(...) , should use  `export LD_LIBRARY_PATH=<path>` 
                                                                                   or   gcc ...  -Wl,-rpath,<path> ...                                            
-       
+
+7. files and filsystem
+
+   all of manuals are in `man man`
+
+   file = named part of disk memory
+   file = system interface (memory for data exchange)
+
+         /path/to/file
+         [    data   ]  >>  metadata:
+                           - date, time (create, changed ...) 
+                           - rights
+                           - size 
+                           - ...
+
+   info about file: stat <filepath>
+
+   all of system calls are in `man 2 <syscall>`
+   most important in this context: 
+      > create and delete files    =  creat, unlink
+      > work inside file           =  open, close, read, write, lseek
+      > work with file descriptor  =  fctrl 
+   
+   directory = file of special format, including metadata of inner files and directories
+
+   all of library calls are in `man 3 <libcall>`
+   most important in this context:
+      > open directory          =  opendir, fdopendir
+      > get information         =  readdir
+      > close directory         =  closedir
+
+      example:
+
+            #include <sys/stat.h>
+            #include <dirent.h> 
+            
+            struct dirent *de = malloc(sizeof(struct dirent)); 
+            struct stat *info; = malloc(sizeof(struct stat));
+
+            DIR *dr = opendir(<dirpath>); 
+
+            if (dr == NULL) 
+            { 
+               ...
+            } 
+            else
+            {
+               while ((de = readdir(dr)) != NULL) 
+               {
+                  ...
+               }
+            }
+
+            closedir(dr);  
+
+   link types:
+     > hardlink (type = file)
+       - same inode
+       - both of links might be placed in any filsystem's place
+       - file exists while exists at least one hardlink
+       = the same file (extension of file names list) !
+     > symlink (type = symbolic link) 
+       - differ inode
+       - if source file will be replaced, link will be broken
+       - file existance independent of symlink
+       = access to source file by name = not by inode !
+   
+   procfs (processes filesystem) = processes + equipment
+
+      > man 1 ltrace = trace library calls
+      > man 1 strace = trace system calls
+      > man 1 pstree = processes tree
+
+      > procfs =
+                     interface
+      1.  run process o-------<  (syscall) KERNEL ( processes handle ) >> run PROCESS ( unique PID ) 
+      2.  KERNEL  >>  PROCFS drivers  >> create PROCESS FILES ( /proc/PID/file* )                                          
+      3.  PROCESS FILES = process interface 
+      4.  command( PID, args ) o-------< (syscall) KERNEL o-------<  PROCFS o-------< PROCESS
