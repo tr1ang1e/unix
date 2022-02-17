@@ -105,3 +105,23 @@
       2.  KERNEL  >>  PROCFS drivers  >> create PROCESS FILES ( /proc/PID/file* )                                          
       3.  PROCESS FILES = process interface 
       4.  command( PID, args ) o-------< (syscall) KERNEL o-------<  PROCFS o-------< PROCESS
+
+8. processes, basics
+
+   process =
+   + threads
+   + memory regions allowed for process usage
+   + credentials (inherited from user's access rights)
+
+   process atributes: 
+      > pid ( + ppid )
+      > memory and registers state
+      > return code
+   keep in simple struct in memory - after process is ended,
+   struct and process finally destroyed when parent process 
+   requests for return code of process 
+   
+   process-zombie
+
+   if parent of the process is destroyed before,
+   the init process becomes parent
