@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
-#define TRACE(number) printf("%d\n", number)
+#include "include/clean_code_utils.h"
 
-void (*funct)(const char*);     // create pointer to function
+static void (*funct)(const char*);     // create pointer to function
 
 bool link_function(const char* libpath, const char* functname)
 {
@@ -12,19 +12,13 @@ bool link_function(const char* libpath, const char* functname)
 
   do
   {
-    // get library handle
-    void* lib = dlopen(libpath, RTLD_LAZY);   
+    void* lib = get_library_handle(libpath, RTLD_LAZY);   
     if (lib == NULL)
-    {
       break;
-    }
 
-    // get function pointer
-    funct = (void (*)(const char*))dlsym(lib, functname);
+    funct = (void (*)(const char*))get_function_pointer(lib, functname);
     if (funct == NULL)
-    {
       break;
-    }
 
     result = true;
 

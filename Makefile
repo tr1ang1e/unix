@@ -1,4 +1,4 @@
-a.out: main.c libunit.so
+a.out: main.c libunit.so ./include/clean_code_utils.h
 	gcc main.c -ldl
 
 libunit.so: ./source/c/unit.c ./include/c/header.h

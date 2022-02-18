@@ -2,26 +2,17 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
-#define TRACE(number) printf("%d\n", number)
+#include "../include/clean_code_utils.h"
 
-void* get_library_handle(const char* libpath)
-{
-  return dlopen(libpath, RTLD_LAZY);       // dlopen()
-}
-
-void* get_function_pointer(void* libhandle, const char* functname)
-{
-  return dlsym(libhandle, functname);     // dlsym()
-}
+static void (*pFunct)(const char*);     // create pointer to function
 
 bool link_function(const char* libpath, const char* functname)
 {
   bool result = false;
-  void (*pFunct)(const char*);     // create pointer to function
 
   do
   {    
-    void* library = get_library_handle(libpath);   
+    void* library = get_library_handle(libpath, RTLD_LAZY);   
     if (library == NULL)
       break;
 
