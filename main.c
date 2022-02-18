@@ -1,40 +1,41 @@
+#include <unistd.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <dlfcn.h>
 
+#include <sys/wait.h>
+#include <errno.h>
+
 #include "include/clean_code_utils.h"
 
-static void (*funct)(const char*);     // create pointer to function
-
-bool link_function(const char* libpath, const char* functname)
+typedef enum INDECIES
 {
-  bool result = false;
-
-  do
-  {
-    void* lib = get_library_handle(libpath, RTLD_LAZY);   
-    if (lib == NULL)
-      break;
-
-    funct = (void (*)(const char*))get_function_pointer(lib, functname);
-    if (funct == NULL)
-      break;
-
-    result = true;
-
-  } while (0);
-  
-  return result;
-}
+  ZERO = 0 ,
+  FIRST    ,
+  SECOND   ,
+  THIRD    ,
+  AMOUNT   
+} INDECIES;
 
 int main(int argc, char* argv[])
 { 
-  if ( link_function("./lib/shared/libunit.so", "message") )
+
+  int numbers[] = 
   {
-    funct("linkage succeed");
-  }
-  else
+    [ZERO]  = 1,
+    [FIRST] = 1,
+    [THIRD] = 1,
+  };
+
+  TTRACEN(numbers[SECOND]);
+  TTRACEN(numbers[THIRD]);
+
+  const char* strings[] =
   {
-    printf("shared library or required function cannot be found\n");
-  }
+    [SECOND] = "half " "one more half" "\n",
+  };
+
+  TTRACEM(strings[SECOND]);
+
+  return 0;
 }

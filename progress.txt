@@ -1,131 +1,158 @@
-0. different features
-   [a] clean_code_utils.h
+   0. different features
+      [a] clean_code_utils.h
 
 
-1. c-programm, 1 file
-2. c-programm, main + (header, unit) files
+   1. c-programm, 1 file
+   2. c-programm, main + (header, unit) files
 
-3. c-programm, main + (dinamic library = so) / compiletime shared library linkage
-   [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
-   [b] gcc main.c -L./lib/shared -lunit                                  # -L<path> = path to .so, -l<name> = name of .so  
-   [c] export LD_LIBRARY_PATH=./lib/shared/                              # before run programm = temporarily set path to shared library for OS
+   3. c-programm, main + (dinamic library = so) / compiletime shared library linkage
+      [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
+      [b] gcc main.c -L./lib/shared -lunit                                  # -L<path> = path to .so, -l<name> = name of .so  
+      [c] export LD_LIBRARY_PATH=./lib/shared/                              # before run programm = temporarily set path to shared library for OS
 
-4. c-program, main + (static library = a)
-   [a] gcc -c ./source/c/unit.c -o ./source/c/unit.o                     # compile programm unit to object file 
-   [b] ar rcs ./lib/static/libunit.a ./source/c/unit.o                   # pack .o into static library (might be several .o files simultaneously)
-   [c] rm ./source/c/unit.o                                              # (optional) remove .o file
-   [d] gcc main.c -L./lib/static -lunit                                  # -L<path> = path to .a, -l<name> = name of .a 
+   4. c-program, main + (static library = a)
+      [a] gcc -c ./source/c/unit.c -o ./source/c/unit.o                     # compile programm unit to object file 
+      [b] ar rcs ./lib/static/libunit.a ./source/c/unit.o                   # pack .o into static library (might be several .o files simultaneously)
+      [c] rm ./source/c/unit.o                                              # (optional) remove .o file
+      [d] gcc main.c -L./lib/static -lunit                                  # -L<path> = path to .a, -l<name> = name of .a 
 
-5. makefile
-   [a] syntax = target: dependencies
-   [b] usage = make <target>
-   [c] additional = 
-       .PHONY                                                            # target that doesn't name a file  
-       <command>     ( without target and tab )                          # will be executed independently
-       CC=gcc        ( without target and tab )                          # usage = $(CC)
-   [d] attention ! every command executes in separate shell ! might be changed using .ONESHELL
+   5. makefile
+      [a] syntax = target: dependencies
+      [b] usage = make <target>
+      [c] additional = 
+         .PHONY                                                            # target that doesn't name a file  
+         <command>     ( without target and tab )                          # will be executed independently
+         CC=gcc        ( without target and tab )                          # usage = $(CC)
+      [d] attention ! every command executes in separate shell ! might be changed using .ONESHELL
 
-6. c-programm, main + (dinamic library = so) / runtime shared library linkage
-   [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
-   [b] gcc main.c -ldl                                                   # dl = special system library for runtime linkage (dlopen, dlsym)  
-   [c] attention ! if there are only lib name (not path) in dlopen(...) , should use  `export LD_LIBRARY_PATH=<path>` 
-                                                                                  or   gcc ...  -Wl,-rpath,<path> ...                                            
+   6. c-programm, main + (dinamic library = so) / runtime shared library linkage
+      [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
+      [b] gcc main.c -ldl                                                   # dl = special system library for runtime linkage (dlopen, dlsym)  
+      [c] attention ! if there are only lib name (not path) in dlopen(...) , should use  `export LD_LIBRARY_PATH=<path>` 
+                                                                                    or   gcc ...  -Wl,-rpath,<path> ...                                            
 
-7. files and filsystem
+   7. files and filsystem
 
-   all of manuals are in `man man`
+      all of manuals are in `man man`
 
-   file = named part of disk memory
-   file = system interface (memory for data exchange)
+      file = named part of disk memory
+      file = system interface (memory for data exchange)
 
-         /path/to/file
-         [    data   ]  >>  metadata:
-                           - date, time (create, changed ...) 
-                           - rights
-                           - size 
-                           - ...
+            /path/to/file
+            [    data   ]  >>  metadata:
+                              - date, time (create, changed ...) 
+                              - rights
+                              - size 
+                              - ...
 
-   info about file: stat <filepath>
+      info about file: stat <filepath>
 
-   all of system calls are in `man 2 <syscall>`
-   most important in this context: 
-      > create and delete files    =  creat, unlink
-      > work inside file           =  open, close, read, write, lseek
-      > work with file descriptor  =  fctrl 
-   
-   directory = file of special format, including metadata of inner files and directories
+      all of system calls are in `man 2 <syscall>`
+      most important in this context: 
+         > create and delete files    =  creat, unlink
+         > work inside file           =  open, close, read, write, lseek
+         > work with file descriptor  =  fctrl 
+      
+      directory = file of special format, including metadata of inner files and directories
 
-   all of library calls are in `man 3 <libcall>`
-   most important in this context:
-      > open directory          =  opendir, fdopendir
-      > get information         =  readdir
-      > close directory         =  closedir
+      all of library calls are in `man 3 <libcall>`
+      most important in this context:
+         > open directory          =  opendir, fdopendir
+         > get information         =  readdir
+         > close directory         =  closedir
 
-      example:
+         example:
 
-            #include <sys/stat.h>
-            #include <dirent.h> 
-            
-            struct dirent *de = malloc(sizeof(struct dirent)); 
-            struct stat *info; = malloc(sizeof(struct stat));
+               #include <sys/stat.h>
+               #include <dirent.h> 
+               
+               struct dirent *de = malloc(sizeof(struct dirent)); 
+               struct stat *info; = malloc(sizeof(struct stat));
 
-            DIR *dr = opendir(<dirpath>); 
+               DIR *dr = opendir(<dirpath>); 
 
-            if (dr == NULL) 
-            { 
-               ...
-            } 
-            else
-            {
-               while ((de = readdir(dr)) != NULL) 
-               {
+               if (dr == NULL) 
+               { 
                   ...
+               } 
+               else
+               {
+                  while ((de = readdir(dr)) != NULL) 
+                  {
+                     ...
+                  }
                }
-            }
 
-            closedir(dr);  
+               closedir(dr);  
 
-   link types:
-     > hardlink (type = file)
-       - same inode
-       - both of links might be placed in any filsystem's place
-       - file exists while exists at least one hardlink
-       = the same file (extension of file names list) !
-     > symlink (type = symbolic link) 
-       - differ inode
-       - if source file will be replaced, link will be broken
-       - file existance independent of symlink
-       = access to source file by name = not by inode !
-   
-   procfs (processes filesystem) = processes + equipment
+      link types:
+      > hardlink (type = file)
+         - same inode
+         - both of links might be placed in any filsystem's place
+         - file exists while exists at least one hardlink
+         = the same file (extension of file names list) !
+      > symlink (type = symbolic link) 
+         - differ inode
+         - if source file will be replaced, link will be broken
+         - file existance independent of symlink
+         = access to source file by name = not by inode !
+      
+      procfs (processes filesystem) = processes + equipment
 
-      > man 1 ltrace = trace library calls
-      > man 1 strace = trace system calls
-      > man 1 pstree = processes tree
+         > man 1 ltrace = trace library calls
+         > man 1 strace = trace system calls
+         > man 1 pstree = processes tree
 
-      > procfs =
-                     interface
-      1.  run process o-------<  (syscall) KERNEL ( processes handle ) >> run PROCESS ( unique PID ) 
-      2.  KERNEL  >>  PROCFS drivers  >> create PROCESS FILES ( /proc/PID/file* )                                          
-      3.  PROCESS FILES = process interface 
-      4.  command( PID, args ) o-------< (syscall) KERNEL o-------<  PROCFS o-------< PROCESS
+         > procfs =
+                        interface
+         1.  run process o-------<  (syscall) KERNEL ( processes handle ) >> run PROCESS ( unique PID ) 
+         2.  KERNEL  >>  PROCFS drivers  >> create PROCESS FILES ( /proc/PID/file* )                                          
+         3.  PROCESS FILES = process interface 
+         4.  command( PID, args ) o-------< (syscall) KERNEL o-------<  PROCFS o-------< PROCESS
 
-8. processes, basics
+   8. processes, basics
 
-   process =
-   + threads
-   + memory regions allowed for process usage
-   + credentials (inherited from user's access rights)
+      process =
+      + threads
+      + memory regions allowed for process usage
+      + credentials (inherited from user's access rights)
 
-   process atributes: 
-      > pid ( + ppid )
-      > memory and registers state
-      > return code
-   keep in simple struct in memory - after process is ended,
-   struct and process finally destroyed when parent process 
-   requests for return code of process 
-   
-   process-zombie
+      process atributes: 
+         > pid ( + ppid )
+         > memory and registers state
+         > return code
+      keep in simple struct in memory - after process is ended,
+      struct and process finally destroyed when parent process 
+      requests for return code of process 
+      
+      process-zombie
 
-   if parent of the process is destroyed before,
-   the init process becomes parent
+      if parent of the process is destroyed before,
+      the init process becomes parent
+
+   9. fork() = syscall to create new process >> man fork
+
+      > process is copy of parent process
+        differences: 
+         - different PID, PPID
+         - doesn't inherit memory locks
+                           signals in wait state
+                           timers
+
+      > starts execution of the same binary file from the next line, but
+        returns value in the child process as well. Peculiarity:
+         - return value in parent process = child PID
+         - return value in chald process = 0
+         - if not succeed return value in parent process = -1 
+
+  10. exec() = number of functions to create new process >> man 3 exec
+      corresponding syscall is execve() >> man 2 execve 
+
+      > process has all of attributes are deffered from parent
+      > new process replace current process
+      > new process might be created as an
+         - execution of executable ( = binary ) file
+         - running script (in this case it requires interpretator as one of arguments)
+      > if execve() failed :
+         - return code = -1
+         - errno is set to appropriate error state

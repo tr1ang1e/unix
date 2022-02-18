@@ -1,9 +1,22 @@
 #ifndef CLEAN_CODE_H
 #define CLEAN_CODE_H
 
+// useful headers
+#include <stdbool.h>
 
-// logging
-#define PTRACEN(number) printf("%d\n", number)
+/* tracing 
+ * 
+ *  prefixes:
+ *    - T = terminal
+ *    - F = file
+ *  
+ *  suffixes:
+ *    - N = number
+ *    - M = message
+ *
+ * */
+#define TTRACEN(number) printf("%d\n", number)
+#define TTRACEM(message) printf("%s\n", message)
 
 
 // dyn_runtime_lib.c
