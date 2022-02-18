@@ -1,6 +1,6 @@
    0. different features
       [a] clean_code_utils.h
-
+      [b] enum_array.c
 
    1. c-programm, 1 file
    2. c-programm, main + (header, unit) files
@@ -112,10 +112,11 @@
 
    8. processes, basics
 
-      process =
-      + threads
-      + memory regions allowed for process usage
-      + credentials (inherited from user's access rights)
+      process = unit of planning (!)
+         + threads
+         + memory regions allowed for process usage
+         + credentials (inherited from user's access rights)
+      and other attributes
 
       process atributes: 
          > pid ( + ppid )
@@ -130,7 +131,7 @@
       if parent of the process is destroyed before,
       the init process becomes parent
 
-   9. fork() = syscall to create new process >> man fork
+   9. fork() = create new process >> man 2 fork
 
       > process is copy of parent process
         differences: 
@@ -156,3 +157,15 @@
       > if execve() failed :
          - return code = -1
          - errno is set to appropriate error state
+
+   11. clone() = create new process with particular attributes >> man 2 clone
+
+      > process is copy of parent process, but 
+        state of some attributes might be set manually:
+         - open files
+         - file namespace ( process' root filesystem = part of entire filesystem )
+         - input-output operations
+         - network environment, hostname
+         - processes identificators spaces (container virtualization)
+         - memory and registers
+         - ...

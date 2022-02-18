@@ -1,8 +1,11 @@
 #ifndef CLEAN_CODE_H
 #define CLEAN_CODE_H
 
-// useful headers
+
+// required headers
+#include <stdio.h>
 #include <stdbool.h>
+
 
 /* tracing 
  * 
