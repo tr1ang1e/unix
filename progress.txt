@@ -1,3 +1,7 @@
+   ?  questions to resolve
+      - send pid of cloned process with flag CLONE_PARENT to new actual parent ?
+      - draw a diagram consists of the elements: SID (session) , PID (process) , TID (thread)
+   
    0. different features
       [a] clean_code_utils.h
       [b] enum_array.c
@@ -104,7 +108,7 @@
          > man 1 pstree = processes tree
 
          > procfs =
-                        interface
+                         interface
          1.  run process o-------<  (syscall) KERNEL ( processes handle ) >> run PROCESS ( unique PID ) 
          2.  KERNEL  >>  PROCFS drivers  >> create PROCESS FILES ( /proc/PID/file* )                                          
          3.  PROCESS FILES = process interface 
@@ -169,3 +173,20 @@
          - processes identificators spaces (container virtualization)
          - memory and registers
          - ...
+ 
+   12. daemons
+
+      order to create daemon:
+
+      [a] in parent process
+          > fork() = create child process
+          > do logic or kill parent process
+      [b] in child process:
+          > setsid()             =  create new session ID for daemon process (parent process would be 'systemd')
+          > umask(int)           =  give necessary permissions 
+          > chdir("dirpath")     =  go to necessary directory
+          > signal( ... )        =  setup signals handlers
+          > close( ... )         =  close std input, output, error (+ and all files as well)
+      
+      or [man 3 daemon] might be used to detach current process from 
+      the controlling terminal and run in the background as system daemons

@@ -1,5 +1,10 @@
+// clone()
 #define _GNU_SOURCE
 #include <sched.h>
+
+// umask()
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <stdlib.h>
 #include <unistd.h>
