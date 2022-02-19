@@ -28,11 +28,13 @@ int main(int argc, char* argv[])
    *   - binary file
    *   - script (see script.py to know about requirements)
    */
-  if (!pid)    // will replace child process with script execution
+  if (!pid)    
   {
+    sleep(5);  // imitation of we need to wait child process
+    
+    // replace child process with script execution
     char* execArgs[] = { "./script.py", "execve() succeded", NULL };    // execArgs[0] is always replaced by scriptpath (make sence to write it explicit)
     char* execEnvi[] = { NULL };                                        // both of arrays must end with NULL pointer
-   
     execve("./script.py", execArgs, execEnvi);                          // if execve() failed, errno will be set in apropriate value
     perror("execve() failed");                                          // this error massege causes we are still in child process (not in script)
   }

@@ -7,6 +7,10 @@
 #include <stdbool.h>
 
 
+// typedefs
+typedef unsigned int flags_t;
+
+
 /* tracing 
  * 
  *  prefixes:
@@ -18,8 +22,9 @@
  *    - M = message
  *
  * */
-#define TTRACEN(number) printf("%d\n", number)
-#define TTRACEM(message) printf("%s\n", message)
+#define TTRACEN(number)                printf("%d\n", number)    // why it doesn't work without '\n'
+#define TTRACEM(message)               printf("%s\n", message)
+#define TTRACEMN(message, number)      printf("%s : %d\n", message, number)
 
 
 // dyn_runtime_lib.c

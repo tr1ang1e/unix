@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include <dlfcn.h>
+#include <dlfcn.h>    // dynamic linkage
 
 #include "../include/clean_code_utils.h"
 
