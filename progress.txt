@@ -1,18 +1,24 @@
    ?  questions to resolve
       - send pid of cloned process with flag CLONE_PARENT to new actual parent ?
       - draw a diagram consists of the elements: SID (session) , PID (process) , TID (thread)
-   
+
+
    0. different features
       [a] clean_code_utils.h
       [b] enum_array.c
 
+
    1. c-programm, 1 file
    2. c-programm, main + (header, unit) files
+
 
    3. c-programm, main + (dinamic library = so) / compiletime shared library linkage
       [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
       [b] gcc main.c -L./lib/shared -lunit                                  # -L<path> = path to .so, -l<name> = name of .so  
       [c] export LD_LIBRARY_PATH=./lib/shared/                              # before run programm = temporarily set path to shared library for OS
+
+      ~ ldd <programm>   # programm dependencies of dynamic libraries
+
 
    4. c-program, main + (static library = a)
       [a] gcc -c ./source/c/unit.c -o ./source/c/unit.o                     # compile programm unit to object file 
@@ -20,20 +26,31 @@
       [c] rm ./source/c/unit.o                                              # (optional) remove .o file
       [d] gcc main.c -L./lib/static -lunit                                  # -L<path> = path to .a, -l<name> = name of .a 
 
+
    5. makefile
       [a] syntax = target: dependencies
       [b] usage = make <target>
       [c] additional = 
-         .PHONY                                                            # target that doesn't name a file  
-         <command>     ( without target and tab )                          # will be executed independently
-         CC=gcc        ( without target and tab )                          # usage = $(CC)
+         .PHONY                                          # target that doesn't name a file  
+         <command>     ( without target and tab )        # will be executed independently
+         CC=gcc        ( without target and tab )        # usage = $(CC)
       [d] attention ! every command executes in separate shell ! might be changed using .ONESHELL
 
+
    6. c-programm, main + (dinamic library = so) / runtime shared library linkage
-      [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so    # compile programm unit to shared library
-      [b] gcc main.c -ldl                                                   # dl = special system library for runtime linkage (dlopen, dlsym)  
-      [c] attention ! if there are only lib name (not path) in dlopen(...) , should use  `export LD_LIBRARY_PATH=<path>` 
-                                                                                    or   gcc ...  -Wl,-rpath,<path> ...                                            
+      [a] gcc -shared -fPIC ./source/c/unit.c -o ./lib/shared/libunit.so               # compile programm unit to shared library
+      [b] gcc main.c -ldl                                                              # dl = special system library for runtime linkage (dlopen, dlsym)  
+      
+      > attention ! if there are only lib name (not path) in dlopen(...) , should :  
+        or use environment variable  =  `export LD_LIBRARY_PATH=<path>` 
+        or set gcc linker flags      =  gcc ...  -Wl,-rpath,<path> ...                                            
+        or follow instructions:
+           ~ cat /etc/ld.so.conf     # will see 'include <path>'      = path to .conf files, using by system to find .so
+           ~ cd <path> && ls         # will see list of .conf files   = every .conf describes path to directories with .so files
+           > varinats:
+             or add your own .conf file with path to dir with your .so
+             or put your .so to one of the dirs, described in one of the existing .conf files     
+
 
    7. files and filsystem
 
@@ -114,6 +131,7 @@
          3.  PROCESS FILES = process interface 
          4.  command( PID, args ) o-------< (syscall) KERNEL o-------<  PROCFS o-------< PROCESS
 
+
    8. processes, basics
 
       process = unit of planning (!)
@@ -135,6 +153,7 @@
       if parent of the process is destroyed before,
       the init process becomes parent
 
+
    9. fork() = create new process >> man 2 fork
 
       > process is copy of parent process
@@ -150,6 +169,7 @@
          - return value in chald process = 0
          - if not succeed return value in parent process = -1 
 
+
   10. exec() = number of functions to create new process >> man 3 exec
       corresponding syscall is execve() >> man 2 execve 
 
@@ -162,6 +182,7 @@
          - return code = -1
          - errno is set to appropriate error state
 
+
    11. clone() = create new process with particular attributes >> man 2 clone
 
       > process is copy of parent process, but 
@@ -173,6 +194,7 @@
          - processes identificators spaces (container virtualization)
          - memory and registers
          - ...
+
  
    12. daemons
 
@@ -190,3 +212,7 @@
       
       or [man 3 daemon] might be used to detach current process from 
       the controlling terminal and run in the background as system daemons
+
+   13. tasks for 'Processes and treads are done'
+
+   14. 

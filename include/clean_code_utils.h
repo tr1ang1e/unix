@@ -22,7 +22,7 @@ typedef unsigned int flags_t;
  *    - M = message
  *
  * */
-#define TTRACEN(number)                printf("%d\n", number)    // why it doesn't work without '\n'
+#define TTRACEN(number)                printf("%d\n", number)   
 #define TTRACEM(message)               printf("%s\n", message)
 #define TTRACEMN(message, number)      printf("%s : %d\n", message, number)
 
