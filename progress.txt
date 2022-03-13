@@ -215,4 +215,48 @@
 
    13. tasks for 'Processes and treads are done'
 
-   14. 
+   14. IPC = inter-process communication, local
+
+       [A] = (un)named pipes
+
+         pipe and read(): 
+         
+            1. after READER opened pipe, pipe is in blocking mode, until WRITER open the same pipe
+            2. while WRITER and READER are on the same pipe, read() works in such mode:
+               > read data from pipe, if there are in it
+               > wait for data, if pipe is empty
+            3. after WRITER closes pipe and READER is alone, read() returns 0 value
+         
+         flow:
+         
+         >  READER opens pipe 
+         >  READER is in blocking mode
+         >                                   WRITER opens pipe
+         >  READER unblocked
+         >  ------------------------- loop ----------------------------
+            read() waits for data in pipe 
+                                             write() sends data to pipe
+            read() gets data from pipe
+            -----------------------------------------------------------
+         >                                   WRITER closes pipe
+         >  read() worsk in regular mode
+         >  read() gets 0 value
+
+         best way to use special read() mode is to put it into while loop:
+         while( read( ... ) ) ...      so if WRITER closes pipe, loop ends
+
+      ! named pipe might be opened by READER in read-write mode =
+        so there are always one fictive writer and real writers might
+        come ane leave in any time without effecting to read() behavior
+
+       [B] = message queues (man mq_open , man mq_send , ... )
+
+       [C] = signals
+
+       [D] = shared memory
+
+       [E] = POSIX semaphore
+
+       [F] = RPC = remote procedure call (man rpc)
+
+   15. IPC = inter-process communication, network

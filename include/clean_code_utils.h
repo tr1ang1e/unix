@@ -6,9 +6,21 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+/**********************************************************************************
+ *                                  TYPEDEFS                                      *
+ **********************************************************************************/
 
-// typedefs
+// unsigned int
 typedef unsigned int flags_t;
+
+// int
+typedef int pipe_d;      // pipe descriptor
+
+// FILE*
+typedef FILE* file_d;    // file descriptor 
+
+// constants
+#define MAX_BUF_LENGTH (128)
 
 
 /* tracing 

@@ -6,9 +6,6 @@
 #define _GNU_SOURCE
 #include <sched.h>
 
-// isdigit()
-#include <ctype.h>
-
 // open(), read()
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -28,8 +25,8 @@
 #include "include/clean_code_utils.h"
 
 int main(int argc, char* argv[])
-{ 
-
-
+{
+  
+  
   return 0;
 }
