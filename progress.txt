@@ -229,10 +229,10 @@
          
          flow:
          
-         >  READER opens pipe 
+         >  READER requests to open pipe 
          >  READER is in blocking mode
          >                                   WRITER opens pipe
-         >  READER unblocked
+         >  READER unblocked, pipe opened
          >  ------------------------- loop ----------------------------
             read() waits for data in pipe 
                                              write() sends data to pipe
@@ -253,6 +253,16 @@
 
        [C] = signals
 
+         signal = interrupt process to run specific logic
+         <signal.h> to know entire list of signals
+
+         every programm has default signal handler module, 'added' in linkage process
+         almost all signal handlers might be overloaded by programm author
+         excepttion: SIGKILL (9) , SIGSTOP (19)
+
+         > kill()    send signal to process     man 2 kill
+         > signal()  defilne signal handler     man 2 signal
+         
        [D] = shared memory
 
        [E] = POSIX semaphore
