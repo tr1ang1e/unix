@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "../include/clean_code_utils.h"
+#include "../../include/clean_code_utils.h"
 
 
 #define CHILD_STACK_SIZE (10000)            // define stack size

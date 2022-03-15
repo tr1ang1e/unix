@@ -15,6 +15,7 @@ typedef unsigned int flags_t;
 
 // int
 typedef int pipe_d;      // pipe descriptor
+typedef int shm_d;       // shared memory descriptor
 
 // FILE*
 typedef FILE* file_d;    // file descriptor 

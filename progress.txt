@@ -265,6 +265,25 @@
          
        [D] = shared memory
 
+         every process has shared memory (SM) segment in it's virtual space
+         SM is used for:
+            - shared library usage
+            - shared memory access
+         
+         shared memory approach means 
+            - some virtual adresses of defferent processes ...
+            - ... are mapped to the same physical memory space
+
+         functions:
+            - shmget() = get
+            - shmat()  = attach
+            - shmdt()  = detach
+            - shmctl() = control
+            - ...
+         
+         to see current shared areas in system:
+         ~ ipcs     # '-m' option to see only shared memory
+
        [E] = POSIX semaphore
 
        [F] = RPC = remote procedure call (man rpc)
