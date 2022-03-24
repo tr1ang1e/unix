@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
   {
     size_t count = 0;
     char buffer[MAX_BUF_LENGTH] = { 0 };    // read to this buffer
-    int fifo_fd = open(fifo, O_RDWR);       // read for read from buffer, write for prevent buffer closes after EOF of real writer
+    int fifo_fd = open(fifo, O_RDWR);       // 'read' for reading from buffer, 'write' for preventing buffer closes after EOF of real writer
 
     while ( resulti = read(fifo_fd, buffer, MAX_BUF_LENGTH) )
     {

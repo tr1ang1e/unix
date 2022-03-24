@@ -288,4 +288,26 @@
 
        [F] = RPC = remote procedure call (man rpc)
 
+       [G] = input/output multiplexing
+
+         prevent program, using named pipe, from blocking on write() or read() instruction ...
+         ... if writing (full buffer) or reading (empty buffer) is impossble.
+
+         every process by default gets 3 opened files (file descriptor - file):
+         1 - stdin
+         2 - stdout
+         3 - stderr
+
+         file descriptors  (value)  :  ... (4)(3)(2)(1)(0)  
+         fd_set watch_list (value)  :  ...  0  1  1  0  1   -<--  1 means file descriptor should be tracked
+                           ( bits)  :  ... [4][3][2][1][0]  
+         
+         void FD_ZERO(fd_set*)       =  reset all bits in fd_set 
+         void FD_SET(fd, fd_set*)    =  set corresponding bit in 1
+         void FD_CLR(fd, fd_set*)    =  set corresponding bit in 0
+         int  FD_ISSET(fd, fd_set*)  =  check state of cerresponding bit
+ 
+         // allow to monitor multiple file descriptors, waiting until at least one becomes ready 
+         int select(int max_fd_count, fd_set* read_watch_list, fd_set* write_watch_list, fd_set* exception_watch_list, struct timeval* timeout);
+
    15. IPC = inter-process communication, network
