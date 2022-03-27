@@ -25,6 +25,17 @@
 
 #include "include/clean_code_utils.h"
 
+void read_and_report(int fd)
+{
+  TTRACEMN("FD is ready to read :", fd);
+  
+  char buff[BUFSIZ];
+  int bytes = read(fd, buff, BUFSIZ);
+  buf[bytes] = 0;
+  
+  TTRACEMN("Bytes were read :", bytes);
+}
+
 int main(int argc, char* argv[])
 {
   int f1 = open("./f1.fifo", O_RDWR);
