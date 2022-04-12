@@ -1,4 +1,4 @@
-#!/bin/python3.10
+#!/bin/python3.9
 
 # script requirements:
 #   > first string must contains path to interpreter
