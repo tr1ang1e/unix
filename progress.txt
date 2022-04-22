@@ -173,11 +173,11 @@
   10. exec() = number of functions to create new process >> man 3 exec
       corresponding syscall is execve() >> man 2 execve 
 
-      > process has all of attributes are deffered from parent
-      > new process replace current process
+      > process has all of attributes are differed from parent
+      > new process replaces current process
       > new process might be created as an
          - execution of executable ( = binary ) file
-         - running script (in this case it requires interpretator as one of arguments)
+         - running script ( in this case it requires interpretator as one of arguments )
       > if execve() failed :
          - return code = -1
          - errno is set to appropriate error state
@@ -249,6 +249,8 @@
         so there are always one fictive writer and real writers might
         come ane leave in any time without effecting to read() behavior
 
+      ! popen() includes at the bottom level : pipe() + fork()
+
        [B] = message queues (man mq_open , man mq_send , ... )
 
        [C] = signals
@@ -311,3 +313,70 @@
          int select(int max_fd_count, fd_set* read_watch_list, fd_set* write_watch_list, fd_set* exception_watch_list, struct timeval* timeout);
 
    15. IPC = inter-process communication, network
+
+      TCP/IP stack: 
+      > APPLICATION LAYER       =  SMTP, TELNET (FTP, HTTP ...), DNS ...
+      > TANSPORT LAYER          =  UDP or TCP
+      > INTERNET LAYER          =  IP, ICMP, ARP ...
+      > LINK (physical) LAYER   =  Wi-Fi, Ethernet ...
+
+      SOFTWARE STACK = 
+      > user
+      > OS (socket interface to user)
+      > drivers (for transport + internet + link layers)
+      > hardware
+
+      IP and SUBNET MASK = xxx.xxx.xxx.xxx / mm , e.g. 
+      192.168.33.1 / 20
+             ip   11000000 10101000 0010001 00000001
+           mask   11111111 11111111 1111000 00000000
+         subnet   11000000 10101000 0010000 00000000 = 192.168.32.0
+           host   00000000 00000000 0000001 00000001 = 0.0.1.1 
+          range                                        0.0.0.1 - 0.0.15.254 (0.0.15.255 = broadcast IP)
+     
+      Logical parts of IP protocol:
+         > packet configure  -<-- only IP adresse (!without mask)
+         > routing task      -<-- mask usage for deside if Destination IP is in Source IP subnet
+      If Destination IP out of Source IP subnet, source host sends packet to DEFAULT GATAWAY
+      Source host -->- Default gateway (routing task) -->- ... -->- Destination host
+
+      COMMUNICATION TYPES:
+         > unicast = point to point
+         > multicast = point to broadcast group
+         > broadcast = point to all
+
+      TCP = transmission control protocol ( high-latency , non-loss-toleranting , order-guarantee      =  primary host-to-host )
+      UDP = user datagram protocol        ( low-latency  , loss-tolerating      , non-order-guarantee  =  primary proc-to-proc )
+
+      SOCKET give abstraction of:
+      - network adress (adresses' and network structure)
+      - transport ( ??? )
+      - i/o base operations (open=connect - close=disconnect - write=send - read=recieve)
+
+      GENERAL structure of SOCKET on client / server
+
+      client                           server
+
+                        UDP
+
+      socket() ...................... socket()
+      bind() ........................ bind()
+      sendto() ..>................>.. recvfrom()
+      recvfrom ..<................<.. sendto()
+
+                        TCP
+
+      socket() ...................... socket()  (socket to establish connection)
+      bind() ........................ bind()
+                                      listen()
+      connect()                       
+                                      accept()  (new socket for data exchange = associates with client socket)                 
+      send() ..>..................>.. recv()
+      recv ..<....................<.. send()
+
+
+      USEFUL LINUX UTILITIES
+      1. netstat = statistic of sockets
+      2. netcat = creat client / server 
+
+      
