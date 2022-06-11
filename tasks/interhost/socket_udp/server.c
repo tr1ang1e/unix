@@ -142,21 +142,9 @@ int main(int argc, char* argv[])
   /*** 5 ***/
 
   // close socket
-  // use shutdown() to shut part or full-duplex socket connection down (man 2 shutsown)
+  // use shutdown() to shut part or full-duplex socket connection down (man 2 shutdown)
   close(sock);
 
 
   exit(EXIT_SUCCESS);
 }
-
-
-
-
-
-
-
-
-
-
-
-

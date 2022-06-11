@@ -375,8 +375,13 @@
       recv ..<....................<.. send()
 
 
-      USEFUL LINUX UTILITIES
+      USEFUL LINUX UTILITIES > broadcast = point to all
+
+      TCP = transmission control protocol ( high-latency , non-loss-toleranting , order-guarantee      =  primary host-to-host )
+      UDP = user datagram protocol        ( low-latency  , loss-tolerating      , non-order-guarantee  =  primary proc-to-proc )
+
+      SOCKET give an abstraction of:
+      - network adress (adresses' and network structure)
+      - transport ( ??? )
       1. netstat = statistic of sockets
       2. netcat = creat client / server 
-
-      
