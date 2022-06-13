@@ -370,7 +370,7 @@
       bind() ........................ bind()
                                       listen()
       connect()                       
-                                      accept()  (new socket for data exchange = associates with client socket)                 
+                                      accept()  (* see comments below)
       send() ..>..................>.. recv()
       recv ..<....................<.. send()
 
@@ -385,3 +385,16 @@
       - transport ( ??? )
       1. netstat = statistic of sockets
       2. netcat = creat client / server 
+
+   *  accept comment. Accept creates new socket for data exchange and associates 
+      it with client socket unisg 4 parameters:
+         - server IP 
+         - server port
+         - client IP
+         - client port
+      Every unique combination corresponds only one [client socket, server socket] pair. So
+      server might handle connections to the same port until client side use
+         - or different IP
+         - or different port
+      [!] Note that after socket was bound it can't be bind() again.       
+          This is true both for explicit and implicit bindings.         

@@ -1,5 +1,5 @@
 // UDP socket server minimal example
-// server is responsible for answering through an established connection
+// in general, server is just another client
 
 
 #include <stdlib.h>

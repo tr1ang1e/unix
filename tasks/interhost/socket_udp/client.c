@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
   int result = getsockname(sock, (struct sockaddr*)&client, &sockaddr_length);
   if (result == -1)
   {
-    perror("getpeername()");
+    perror("getsockname()");
     exit(EXIT_FAILURE);
   }
   in_port_t client_port = ntohs(client.sin_port);

@@ -60,7 +60,7 @@ int main(int argc, char** argv)
     perror("socket()");
     exit(EXIT_FAILURE);
   }
-  printf(" :: __1__ create client socket. Handler = %d \n", sock);
+  printf(" :: __1__ : create client socket. Handler = %d \n", sock);
 
 
 /* __2__ : bind client socket fd to net params
@@ -76,7 +76,12 @@ int main(int argc, char** argv)
    * COMMENT 2 :
    * In addition, getsockname() will always return  0.0.0.0 IP
    * The same behavior will appear if explicitly set : 
-   *    'client.sin_addr.s_addr = INADDR_ANY' despite of
+   *    'client.sin_addr.s_addr = INADDR_ANY' despite of  if (sock == -1)
+  {
+    perror("socket()");
+    exit(EXIT_FAILURE);
+  }
+  printf(" :: __1__ : create client socket. Handler = %d \n", sock);
    *    'inet_aton("127.0.0.1", &client.sin_addr)'
    * 
    * */
@@ -89,7 +94,7 @@ int main(int argc, char** argv)
   // bind socket to params
   // int result = bind(...);                    // see 'server.c' source code for bind() example  
  
-  printf(" :: __2__ :  bind socket fd to net params. Unnecessary for client side. Skipping... \n");
+  printf(" :: __2__ : bind socket fd to net params. Unnecessary for client side. Skipping... \n");
 
 
   /* __3__ : prepare server data
@@ -132,12 +137,12 @@ int main(int argc, char** argv)
   result = getsockname(sock, (struct sockaddr*)&client, &sockaddr_length);
   if (result == -1)
   {
-    perror("getpeername()");
+    perror("getsockname()");
     exit(EXIT_FAILURE);
   }
   in_port_t client_port = ntohs(client.sin_port);
   const char* client_ip = inet_ntoa(client.sin_addr);
-  printf("             my socket net params. IP:port = %s:%d \n", client_ip, client_port);
+  printf("            My socket net params. IP:port = %s:%d \n", client_ip, client_port);
 
 
   /* __5__ : write to socket 
