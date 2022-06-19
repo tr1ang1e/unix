@@ -154,6 +154,11 @@ int main(int argc, char** argv)
 
     // get client socket net params
     result = getpeername(clientSocket[num], (struct sockaddr*)&client, &sockaddr_length);
+    if(result == -1)
+    {
+      perror("getpeername()");
+      exit(EXIT_FAILURE);
+    }
     const char* client_ip = inet_ntoa(client.sin_addr);
     in_port_t client_port = ntohs(client.sin_port);
     printf("            Remote data.  IP:port = %s:%d \n", client_ip, client_port);
@@ -203,6 +208,6 @@ int main(int argc, char** argv)
     break;
   }
 
-
+  close(listenSocket);
   exit(EXIT_SUCCESS);
 }

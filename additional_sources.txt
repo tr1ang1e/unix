@@ -1,0 +1,16 @@
+System documentation
+  $ man man
+  $ man apropos
+  $ man whatis
+
+Resources
+  Инструкция по GNU make                    http://rus-linux.net/nlib.php?name=/MyLDP/algol/gnu_make/gnu_make_3-79_russian_manual.html
+  Краткое руководство по vim                https://ru.wikibooks.org/wiki/Vim
+  Анатомия динамических библиотек           http://www.ibm.com/developerworks/ru/library/l-dynamic-libraries/
+  Первые шаги для начинающих                http://www.firststeps.ru/linux    
+  Библиотека статей про Linux вообще        http://www.linuxlib.ru/
+  Техническая библиотека IBM на русском     https://www.ibm.com/developerworks/ru/views/global/libraryview.jsp
+
+Video (https://www.youtube.com/channel/UCG5p_AY0z7WDAgH6j-oCa9g)
+  Основы функционирования компьютерных сетей      https://www.youtube.com/watch?v=BJSITWkSDQg
+  Моя сетью Рекогносцировка                       https://www.youtube.com/watch?v=oVCrpOznlrE
