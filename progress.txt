@@ -397,4 +397,6 @@
          - or different IP
          - or different port
       [!] Note that after socket was bound it can't be bind() again.       
-          This is true both for explicit and implicit bindings.         
+          This is true both for explicit and implicit bindings.  
+
+   16. getopt() = handle command line arguments (man 3 getopt)       
