@@ -1,0 +1,18 @@
+SOCKET = abstraction over the two-sides communication flow:
+    1. server  
+    2. client
+
+Kernel implementation is based on BERKLEY SOCKETS, also called:
+    - POSIX sockets
+    - BSD sockets
+
+SOCKET is represented as a FILE in system and therefore has
+FILE DESCRIPTOR which is related to combination of 4 values:
+    - server IP
+    - server PORT
+    - client IP
+    - client PORT
+These values are set by:
+    1. server side = bind(...) for server 'IP:port' + accept(...) for client 'IP:port'
+    2. server side = bind(...) for client 'IP:port' + connect(...) for client 'IP:port'       
+                     bind is unnecessary for client (see 'sendto' / 'connect' for UDP / TCP)

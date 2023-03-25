@@ -33,7 +33,8 @@
 #define CLIENT_PORT // not used = auto set by OS (see comments for '2. bind : sozket -<-->- params in code)
 #define SERVER_PORT 1234
 
-/*  struct sockaddr_in
+/*  
+    struct sockaddr_in
     {
       sa_family_t     sin_family;         // unsigned short
       in_port_t       sin_port;           // uint16_t                  -<-- set with htons() (host to network short)
@@ -63,7 +64,7 @@ int main(int argc, char** argv)
   printf(" :: __1__ : create client socket. Handler = %d \n", sock);
 
 
-/* __2__ : bind client socket fd to net params
+  /* __2__ : bind client socket fd to net params
    * NOTE : this step is unnecessary for client side.
    *        
    * COMMENT 1 : 
@@ -76,13 +77,8 @@ int main(int argc, char** argv)
    * COMMENT 2 :
    * In addition, getsockname() will always return  0.0.0.0 IP
    * The same behavior will appear if explicitly set : 
-   *    'client.sin_addr.s_addr = INADDR_ANY' despite of  if (sock == -1)
-  {
-    perror("socket()");
-    exit(EXIT_FAILURE);
-  }
-  printf(" :: __1__ : create client socket. Handler = %d \n", sock);
-   *    'inet_aton("127.0.0.1", &client.sin_addr)'
+   *    'client.sin_addr.s_addr = INADDR_ANY' despite of ...
+   *    ... 'inet_aton("127.0.0.1", &client.sin_addr)'
    * 
    * */
 
