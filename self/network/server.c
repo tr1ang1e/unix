@@ -3,6 +3,6 @@
 
 int main(int argc, char** argv)
 {
-    printf("argc=%d\n", argc);
+    printf("SERVER\nargc=%d\n", argc);
     return 0;
 }
