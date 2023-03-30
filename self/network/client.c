@@ -1,14 +1,21 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
-#include <netinet/ip.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <arpa/inet.h>
+#include <netinet/ip.h>
+#include <poll.h>
+
+
+#define RESPONSE_BUFSIZ_KB 1048576  // 10 MB
 
 
 int main(int argc, char** argv)
 {
-    int rc = 0;     // temp var to keep ret code from calls
+    int rc = 0;                     // temp var to keep ret code from calls
+    char* HTTP_RESPONSE = NULL;     // pointer to be used for dynamic alloc
     
     /* create socket */
 
@@ -82,12 +89,25 @@ int main(int argc, char** argv)
     /* main logic = HTTP communication */
 
     ssize_t bytes = 0;
+    ssize_t total = 0;
 
     const char* HTTP_GET = 
         "GET / HTTP/1.1\r\n"
-        "Host:google.com\r\n"
+        "Host:www.google.com\r\n"
+        "Connection:close\r\n"
         "\r\n";
     
+    /*
+        send() function doesn't guarantee that it will
+        return after all data have to be sent were actually 
+        sent. In order to control the sending process sock 
+        writer should process the following flow:
+
+        ...
+        ...
+        ...    
+    */
+
     bytes = send(sock, HTTP_GET, strlen(HTTP_GET), 0);
     if (-1 == rc)
     {
@@ -96,27 +116,89 @@ int main(int argc, char** argv)
     }
     printf("Sending data ... %ld bytes sent\n", bytes);
 
-    char HTTP_RESPONSE[32768] = { 0 };
-    bytes = recv(sock, HTTP_RESPONSE, sizeof(HTTP_RESPONSE), 0);
-    if (-1 == bytes)
+    /*
+        recv() function doesn't guarantee that it will
+        return after all data had sent by partner were
+        actually recieved. In order to control socket
+        state and be sure that all data were recieved
+        socket reader should be used with poll() call.
+
+        In following example, only POLLIN is handled - 
+        in order to handle errors such as:
+            POLLERR
+            POLLHUP
+            POLLNVAL
+        
+        The server will close the connection after the 
+        entire response is sent because of "HTTP_GET",
+        and therefore end of recieving might be detected.
+    */
+
+    HTTP_RESPONSE = (char*)calloc(1, RESPONSE_BUFSIZ_KB);
+    char* destination = HTTP_RESPONSE;
+    size_t available = RESPONSE_BUFSIZ_KB;
+    total = 0;
+    bytes = 0;
+
+    struct pollfd polls[1] = { {sock, POLLIN, 0}  };
+    while (true)
     {
-        perror("recv()");
-        goto exit;
+        destination += bytes;
+        available -= bytes;
+        total += bytes;
+
+        poll(polls, 1, -1);
+
+        if (polls[0].revents & POLLIN)
+        {
+            bytes = recv(sock, destination, available, 0);
+            
+            if (-1 == bytes)
+            {
+                // error when recieving
+                perror("recv()");
+                goto exit;
+            }
+            else if (0 == bytes)
+            {
+                // EOF is recieved = connection closed
+                break;
+            }
+            else
+            {
+                // another part was recieved
+                printf("  ... %ld recieved ... \n", bytes);
+            }
+        }
     }
-    printf("Recieving data ... %ld bytes recieved\n", bytes);
+
+    printf("Recieving data is finished. Total %ld bytes are recieved\n", total);
     printf("Content:\n\n%s\n", HTTP_RESPONSE);
+
+exit:
+
+    /* free memory */
+
+    if (NULL != HTTP_RESPONSE)
+    {
+        free(HTTP_RESPONSE);
+    }
 
     /* close socket */
 
-    rc = close(sock);
-    if (-1 == rc)
+    if (-1 != sock)
     {
-        perror("close()");
-        goto exit;
+        rc = close(sock);
+        if (-1 == rc)
+        {
+            perror("close()");
+            goto exit;
+        }
+        else
+        {
+            printf("Socket is closed successfully\n");
+        }
     }
-    printf("Socket is closed successfully\n");
 
-
-exit:
     return 0;
 }

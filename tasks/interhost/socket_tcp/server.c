@@ -168,7 +168,7 @@ int main(int argc, char** argv)
      * 
      * */
     char buffer[BUFSIZ] = { 0 };
-    int recieved = recv(clientSocket[num], buffer, BUFSIZ, MSG_NOSIGNAL);
+    int recieved = recv(clientSocket[num], buffer, BUFSIZ, 0);
     if (recieved == -1)
     {
       perror("recv()");
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
      * */
     const char* message = "SERVER MESSAGE";
     size_t messlen = strlen(message);
-    int sent = send(clientSocket[num], message, messlen, 0);
+    int sent = send(clientSocket[num], message, messlen, MSG_NOSIGNAL);
     if (sent == -1)
     {
       perror("send()");
