@@ -98,14 +98,16 @@ int main(int argc, char** argv)
         "\r\n";
     
     /*
-        send() function doesn't guarantee that it will
-        return after all data have to be sent were actually 
-        sent. In order to control the sending process sock 
-        writer should process the following flow:
+        send() function guarantees that all data
+        have to be sent will be actually sent,
+        unless:
 
-        ...
-        ...
-        ...    
+            non-blocking mode is activated
+                - fcntl() with O_NONBLOCK flag = affect socket descriptor itself
+                - send() with MSG_DONTWAIT flag = applied only to current call
+            error occurs
+        
+          
     */
 
     bytes = send(sock, HTTP_GET, strlen(HTTP_GET), 0);
