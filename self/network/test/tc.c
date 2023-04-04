@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
 
     // Set the server address
 
-    /*
 
     // local
     struct sockaddr_in server_addr =
@@ -55,7 +54,7 @@ int main(int argc, char *argv[])
         .sin_port = htons(1234)
     };
 
-    */
+    /*
 
     // web
     const char* server_ip = "142.250.188.46";       // google.com
@@ -74,6 +73,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    */
 
     // ---------------------------------------------------------------------------- //
 

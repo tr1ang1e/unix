@@ -90,7 +90,9 @@ int main(int argc, char *argv[])
                 else
                 {
                     // Another part was recieved
+                    printf(" recieved %d bytes \n", bytes_received);
                     total_recieved += bytes_received;
+                    usleep(10000);
                 }
             }
         }

@@ -13,4 +13,5 @@ Resources
 
 Video (https://www.youtube.com/channel/UCG5p_AY0z7WDAgH6j-oCa9g)
   Основы функционирования компьютерных сетей      https://www.youtube.com/watch?v=BJSITWkSDQg
-  Моя сетью Рекогносцировка                       https://www.youtube.com/watch?v=oVCrpOznlrE
+  Моя сеть. Рекогносцировка                       https://www.youtube.com/watch?v=oVCrpOznlrE
+  

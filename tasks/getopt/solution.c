@@ -48,7 +48,7 @@ int main(int argc, char** argv)
    *
    * 1. takes command line argument
    * 2. desides whether it short or long option
-   *      (A) if short, try to fing in 'shortopts' argument and return this option character
+   *      (A) if short, try to find in 'shortopts' argument and return this option character
    *      (B) if long, try to find in 'longopts' argument (full or partitial matching) and return:
    *            > if 'flag' is NULL, return 'val'
    *            > otherwise return 0 and set 'flag' variable to 'val'
