@@ -1,5 +1,6 @@
 .*
 __*
+credentials*
 
 !.gitkeep
 !.gitignore
