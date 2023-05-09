@@ -24,11 +24,12 @@ typedef enum CliOptions
 /*                      E X T E R N A L                      */
 /* --------------------------------------------------------- */
 
-SideType __whoami = SIDE_UNSPEC;      // should be cpecified
-bool __daemon_proc = false;           // not daemon by default
+SideType __whoami = SIDE_UNSPEC;        // should be cpecified
+bool __daemon_proc = false;             // not daemon by default
 
-const char* __ip = "127.0.0.1";       // loopback
-in_port_t __port = 1111;              // random
+// const char* __ip = "127.0.0.1";      // loopback
+const char* __ip = "185.186.246.53";    // hostry
+in_port_t __port = 1111;                // random
 
 
 /* --------------------------------------------------------- */
@@ -86,6 +87,14 @@ void err_sys(const char *fmt, ...)
     __va_destroy(args);
 
     exit(EXIT_FAILURE);
+}
+
+/* input */
+
+void enter()
+{
+    __console("> ");
+    __unused getchar();
 }
 
 

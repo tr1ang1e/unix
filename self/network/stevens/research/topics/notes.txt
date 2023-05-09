@@ -1,0 +1,75 @@
+
+KERNEL DOCUMENTATION    
+
+    https://tldp.org
+    https://www.kernel.org/doc/html/latest/
+
+KERNEL PARAMETERS
+
+    /proc/sys/*         = path to defaults
+    sysctl              = cli utility for managing: get and temporarily set values inside /proc/sys/*
+    /etc/sysctl.conf    = permanent set values: apply values on system start
+
+* * *
+
+MSS (maximum segment size) = ...
+
+    https://networkengineering.stackexchange.com/questions/33574/is-mss-negotiated-or-exchanged-during-the-3-way-handshake
+
+MTU () = ...
+
+    https://networkengineering.stackexchange.com/a/76462
+
+* * *
+
+TCP WINDOW SIZE = derivative of:
+
+    1. receiver window = how much data receiver can handle
+
+        - mechanism name:   flow control
+        - the purpose:      to avoid receiver buffer overflow
+        - estimation:       receiver set value to TCP header 'Window size' field
+        - value:            might be less or equal to receiver buffer free space 
+
+    2. congestion window = how much data the network can transfer
+
+        - mechanism name:   congestion control
+        - the purpose:      to avoid network overloading
+        - estimation:       sender uses congestion control algorithms (CCA) 
+        - value:            greater than maximum segment size (MSS) allowed by receiver         
+
+    WINDOW SIZE = the samellest of receiver and congestion window
+    DATA IN FLIGHT = the data have been sent but not acknowledged 
+    
+* * *
+
+TCP RECEIVER BUFFER SIZE
+
+    Kernel level        = /proc/sys/net/core/rmem_max
+    TCP level           = /proc/sys/net/ipv4/tcp_rmem (values: min default max)
+    particular socket   = man 7 socket >> socket options >> SO_RCVBUF
+                          man 8 ss >> Options >> --memory 
+
+    Notes:
+
+        - actual SO_RCVBUF size will be twice as much as set value
+        - it seems that `man 7 socket` description of SO_RCVBUF is incorrect:
+            man: "... the maximum allowed value is set by the /proc/sys/net/core/rmem_max file"
+            reality: almost entire TCP core code refers to /proc/sys/net/ipv4/tcp_rmem only
+            read https://stackoverflow.com/a/35438236
+
+TCP RECEIVER BUFFER PROCESSING
+
+    ...
+
+* * *
+
+List of questions to be answered:
+    -        use socket(..., ... | SOCK_NONBLOCK, ...) with 'poll' on 'connect'
+    2.4      how to set connection/response timeout for TCP + how TCP predicts Round-trip time (RTT)
+    2.4      how to get information about Window actual size = buffer available size
+    2.6      how TRANSPORT layer (e.g. TCP) parameters connected with APPLICATION layer experience?
+    -        local vs. external IP in context of bind() function and 'ifconfig' utility
+    2.11     "... MTU IPv4 min - 68 byte ..." - incorrect formulation
+                see https://networkengineering.stackexchange.com/a/76462
+                understand clearly if necessary

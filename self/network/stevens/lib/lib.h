@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -84,6 +85,9 @@ const char* Getenv(const char* name, const char* value);
 void err_msg(const char *fmt, ...);         // nonfatal error unrelated to a system call. Print a message and return
 void err_quit(const char* fmt, ...);        // fatal error unrelated to a system call. Print a message and terminate 
 void err_sys(const char *fmt, ...);         // fatal error related to a system call. Print a message and terminate
+
+// input
+void enter();                               // get enter
 
 
 #endif

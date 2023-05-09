@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     struct sockaddr_in server = 
     {
         .sin_family = AF_INET,
-        .sin_addr.s_addr = htonl(INADDR_ANY),   // specify interface to accept from
+        .sin_addr.s_addr = htonl(INADDR_ANY),   // specify interface to accept FROM
         .sin_port = htons(__port)
     };
 
@@ -62,6 +62,9 @@ int main(int argc, char** argv)
             else
                 err_sys("accept() error");
         }
+
+        // debug
+        __console("Client accepted\n");
 
         // write
         time_t ticks = time(NULL);

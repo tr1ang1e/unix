@@ -14,6 +14,7 @@ to the following rule:
     <comments> 
 */
 
+                * * *
 
 All clients require servers to communicate with,
 unless otherwise is not specified explicitely. To 
@@ -22,10 +23,14 @@ see versions. Versions format: <major>.<minor>
     major - must be the same at both client and server sides
     minor - indicates enhancements which doesn't broke compatibility
 
-
 Git commit messages are done in format:
-    stevens / c=<version> s=<version> / <comment>
+    if source code is changed: "stevens / c=<version> s=<version> / <comment>"
+    if common changes: "stevens / <comment>"
+    if learning some topic: "stevens / <topic> : <comment>"
 
+                * * *
 
-List of questions to be answered:
-    - use socket(..., ... | SOCK_NONBLOCK, ...) with 'poll' on 'connect'
+Request for comments (RFC):
+    UDP = RFC 768
+    TCP = RFC 793, 1323, 2581, 2988, 3390
+    SCTP = RFC 3286 (introduction), 2960, 3309
