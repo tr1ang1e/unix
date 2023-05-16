@@ -10,66 +10,161 @@ KERNEL PARAMETERS
     sysctl              = cli utility for managing: get and temporarily set values inside /proc/sys/*
     /etc/sysctl.conf    = permanent set values: apply values on system start
 
+UTILITIES
+
+    iproute2 package    = network internal information:  ip / tc / ss / bridge / etc.
+    nstat               = network raw statistics
+    sysctl              = kernel information
+    tcpdump             = dump network traffic     
+
 * * *
 
-MSS (maximum segment size) = ...
+TCP/IP MODEL
+
+    [A] = APPLICATION   <...>
+    [T] = TRANSPORT     TCP, UDP, <...>
+    [I] = INTERNET      IPv4/6, <...>
+    [L] = LINK          <...>
+
+* * *
+
+MSS (maximum segment size) = <...>
 
     https://networkengineering.stackexchange.com/questions/33574/is-mss-negotiated-or-exchanged-during-the-3-way-handshake
+    https://en.wikipedia.org/wiki/Maximum_segment_size
 
-MTU () = ...
+MTU () = <...>
 
     https://networkengineering.stackexchange.com/a/76462
 
 * * *
 
-TCP WINDOW SIZE = derivative of:
+TCP RECEIVER BUFFER SIZE
 
-    1. receiver window = how much data receiver can handle
+    RELATED VALUES
+
+        rmem_max            Kernel level restriction       = /proc/sys/net/core/rmem_max
+        tcp_rmem            TCP level (min default max)    = [man 7 socket], get: /proc/sys/net/ipv4/tcp_rmem 
+        SO_RCVBUF           particular socket size         = [man 7 socket], get: [man 8 ss] >> Options >> --memory
+
+    BUFFER STRUCTURE
+
+             DATA ITSELF
+        /                     \
+        +----------------------+----------------------+
+        |       RECV-Q         |       METADATA       |
+        +----------------------+----------------------+
+        |  ADVERTIZED WINDOW   |       RESERVED       |
+        +----------------------+----------------------+
+        \                                            /
+                    TECHNICALLY 'FREE' SPACE
+
+
+        TOTAL SIZE
+        
+            If set manually from user space = (2 * SO_RCVBUF)
+            Otherwise is regulated by TCP AUTOTUNE MECHANISM
+        
+        DESCRIPTION
+
+            RECV-Q + METADATA = actually used memory. Get value: `ss --memory` >> 'skmem_r' value
+            ADVERTIZED WINDOW + RESERVED = currently technically free memory
+
+            - RECV-Q        TCP needs:      data were received by TCP and is waiting for application to be read()
+            - METADATA      Kernel needs:   information about how data placed in memory (struct sk_buff), etc.
+            - ADV. WINDOW   window size to be written to TCP header as 'Window size'
+            - RESERVED      will be used in future for either data or metadata
+
+    ADVERTIZED WINDOW SIZE MANAGEMENT
+
+        In vanilla Linux kernel advertied window size:
+            is set to some little value at the receiving beginning ...
+            ... and then optimized:
+                increases - so long as it might be increased
+                decreases - as data arrives and if free space is not enough for next portion of data
+    
+        Advertized window UPPER BOUND is limited by:
+            tcp_adv_win_scale       TCP level               = [man 7 tcp], get: /proc/sys/net/ipv4/tcp_adv_win_scale
+            rcv_ssthresh            TCP level, sourcecode   = internal, see: include/linux/tcp.h:240 and tcp-related references <?>
+            TCP_WINDOW_CLAMP        particular socket       = [man 7 tcp]
+
+    METADATA REDUCTION MECHANISMS 
+        
+        To reduce the metadata memory usage kernel applies 2 mechanisms:
+        
+        COALESCE = during receiving
+            - link data to the previously enqueded packet
+            - throw new metadata structure away
+        
+        COLLAPSE = when the memory budget is hit
+            - defragment the receiver buffer
+            - rewrite many short segments to several long ones
+
+    / Notes /
+
+
+        *   it seems that `[man 7 socket]` description of SO_RCVBUF is incorrect:
+            man: "... the maximum allowed value is set by the /proc/sys/net/core/rmem_max file"
+            reality: almost entire TCP core code refers to /proc/sys/net/ipv4/tcp_rmem only
+            read: https://stackoverflow.com/a/35438236
+
+* * *
+
+TCP SENDER WINDOW SIZE = derivative of:
+
+    1. receiver window size = how much data receiver can handle
 
         - mechanism name:   flow control
         - the purpose:      to avoid receiver buffer overflow
         - estimation:       receiver set value to TCP header 'Window size' field
-        - value:            might be less or equal to receiver buffer free space 
+        - value:            read 'TCP receiver window size' in this doc
+        - get value:        dump TCP segment [man 8 tcpdump]
 
-    2. congestion window = how much data the network can transfer
+    2. congestion window size = how much data the network can transfer
 
         - mechanism name:   congestion control
         - the purpose:      to avoid network overloading
         - estimation:       sender uses congestion control algorithms (CCA) 
-        - value:            greater than maximum segment size (MSS) allowed by receiver         
+        - value:            greater than maximum segment size (MSS) allowed by receiver     
+        - get value:        dump socket statistics ([man 8 ss] >> -i option, 'cwnd' field)
 
-    WINDOW SIZE = the samellest of receiver and congestion window
-    DATA IN FLIGHT = the data have been sent but not acknowledged 
+    SENDER WINDOW SIZE
     
-* * *
+        - the samellest of receiver and congestion window
+        - vs. MTU =  <...>
 
-TCP RECEIVER BUFFER SIZE
+    DATA IN FLIGHT = the data have been sent but not acknowledged
 
-    Kernel level        = /proc/sys/net/core/rmem_max
-    TCP level           = /proc/sys/net/ipv4/tcp_rmem (values: min default max)
-    particular socket   = man 7 socket >> socket options >> SO_RCVBUF
-                          man 8 ss >> Options >> --memory 
+TCP SENDER BUFFER PROCESSING
 
-    Notes:
+    1. [A] writes data to socket
+    2. [T] 
+            - takes data from socket to internal buffer
+            - split them into SEGMENTS
+            - send to a [I]
+            - wait for ACK 
+            - remove acknowledged data from internal buffer
+    
+    BLOCKING MODE
+        
+        - [A] and [T] executed sequentially / although [T] is managed by OS in different thread
+        - [T] returns control to [A] after all data are copied from socket to [T] sender buffer
+    
+    NON-BLOCKING MODE
 
-        - actual SO_RCVBUF size will be twice as much as set value
-        - it seems that `man 7 socket` description of SO_RCVBUF is incorrect:
-            man: "... the maximum allowed value is set by the /proc/sys/net/core/rmem_max file"
-            reality: almost entire TCP core code refers to /proc/sys/net/ipv4/tcp_rmem only
-            read https://stackoverflow.com/a/35438236
-
-TCP RECEIVER BUFFER PROCESSING
-
-    ...
+        <...>
 
 * * *
 
 List of questions to be answered:
     -        use socket(..., ... | SOCK_NONBLOCK, ...) with 'poll' on 'connect'
     2.4      how to set connection/response timeout for TCP + how TCP predicts Round-trip time (RTT)
-    2.4      how to get information about Window actual size = buffer available size
     2.6      how TRANSPORT layer (e.g. TCP) parameters connected with APPLICATION layer experience?
     -        local vs. external IP in context of bind() function and 'ifconfig' utility
     2.11     "... MTU IPv4 min - 68 byte ..." - incorrect formulation
                 see https://networkengineering.stackexchange.com/a/76462
                 understand clearly if necessary
+
+Search in this document for: 
+    <?>    all not fully got details  
+    <...>  no information studied
