@@ -14,28 +14,107 @@ UTILITIES
 
     iproute2 package    = network internal information:  ip / tc / ss / bridge / etc.
     nstat               = network raw statistics
+    netstat             = TCP FSM states
     sysctl              = kernel information
-    tcpdump             = dump network traffic     
+    tcpdump             = dump network traffic
+    ssh, telnet         = remote connection     
 
 * * *
 
 TCP/IP MODEL
 
     [A] = APPLICATION   <...>
-    [T] = TRANSPORT     TCP, UDP, <...>
-    [I] = INTERNET      IPv4/6, <...>
-    [L] = LINK          <...>
+    [T] = TRANSPORT     TCP, UDP, <...>         segment, datagram
+    [I] = INTERNET      IPv4/6, <...>           packet
+    [L] = LINK          <...>                   unit
+
+MODEL PARAMETERS
+
+    --- LINK --------
+
+    MTU (maximum transmission unit)
+    
+        - maximum size of unit which can be processed in a single transaction
+        - PMTU = path MTU = MTU for entire network path between two peers
+        - get MTU:
+            for host interface: `ip a | grep mtu`
+            for entire path: PMTU Discovery
+
+        <how host knows MTU of other host?>
+        https://networkengineering.stackexchange.com/a/76462
+
+    --- INTERNET ----
+
+    MINIMUM REASSEMBLY BUFFER SIZE
+
+        minimum IP PACKET size that any node  
+            - must be able to handle in one fragment or
+            - does best efforts to reassemble it from smaller ones
+        Dafaults:
+            IPv4 =  576 octets   [RFC 0879]
+            IPv6 = 1500 octets   [RFC 1883]
+
+    MINIMUM FRAGMENTATION SIZE (also called IP MTU)
+
+        minimum IP FRAGMENT size that each node must be able 
+        to handle without further fragmentation. Dafaults:
+            IPv4 =   68 octets   [RFC 0791]  - actual value usually is greater
+            IPv6 = 1280 octets   [RFC 2460]  - actual value usually is the same     
+
+    --- TRANSPORT ---
+
+    TCP PORTS
+
+                                IANA                                    UNIX
+
+            0 ..  1023      well-known, approval required           reserved, sudo required       
+         1024 .. 49151      registered, list fot conviniency        -, free to use
+        49152 .. 65535      private, custom usage                   -, free to use
 
 * * *
 
-MSS (maximum segment size) = <...>
+TCP HEADER
 
-    https://networkengineering.stackexchange.com/questions/33574/is-mss-negotiated-or-exchanged-during-the-3-way-handshake
-    https://en.wikipedia.org/wiki/Maximum_segment_size
+    PORT, sender              16
+    PORT, receiver            16
+  +------------------------------+
+    NUMBER, sequence          32        = if ACK without data, value is unchanged comparing last segment with data
+    NUMBER, acknowledged      32        
+  +------------------------------+
+    HEADER LENGTH              4
+    RESERVED                   4
+    BITS                       8        = including: SYN, ACK, FIN, RST
+    WINDOW SIZE               16        = refers to receiver advertized window, see "TCP RECEIVER BUFFER SIZE"
+    CHECKSUM                  16
+    URGENT POINTER            16
+  +------------------------------+ 
+                     = 20 octets
+        +
+    OPTIONS               0..320
+    PADDING                to 32
+    DATA              0..8*65535        = see "TCP DATA MAX SIZE"
 
-MTU () = <...>
+TCP OPTIONS
 
-    https://networkengineering.stackexchange.com/a/76462
+    MSS (maximum segment size) =
+
+        - maximum size (in octets) which receiver can handle in a separate TCP segment
+        - established independently for both sides in SYN segments
+        - counting:
+            PMTU - IP_header - TCP_header
+            if no MSS received from partner peer, default value is used:
+                IPv4 = 536 = 576 - 20 - 20          // refers to IPv4 MINIMUM REASSEMBLY BUFFER SIZE
+                IPv6 = 1220 = 1280 - 40 - 20        // refers to IPv6 MINIMUM FRAGMENTATION SIZE
+        - sender may send segments less than or equal to MSS established by receiver
+
+    WINDOW SCALE OPTION = [RFC 1323]
+
+    TIMESTAMP OPTION = [RFC 1323]
+
+TCP DATA MAX SIZE
+
+    if IPv4  >>  IP data max = 65515 (65535 - IP header)      >>  TCP data max = 65495 (65515 - TCP header) 
+    if IPv6  >>  IP data max = 65535 (header is independent)  >>  TCP data nax = 65515 (65635 - TCP header)
 
 * * *
 
@@ -84,7 +163,7 @@ TCP RECEIVER BUFFER SIZE
                 decreases - as data arrives and if free space is not enough for next portion of data
     
         Advertized window UPPER BOUND is limited by:
-            tcp_adv_win_scale       TCP level               = [man 7 tcp], get: /proc/sys/net/ipv4/tcp_adv_win_scale
+            tcp_adv_win_scale       TCP level               = % of free space to be used for advertizing, [man 7 tcp]. Get: /proc/sys/net/ipv4/tcp_adv_win_scale
             rcv_ssthresh            TCP level, sourcecode   = internal, see: include/linux/tcp.h:240 and tcp-related references <?>
             TCP_WINDOW_CLAMP        particular socket       = [man 7 tcp]
 
@@ -156,6 +235,14 @@ TCP SENDER BUFFER PROCESSING
 
 * * *
 
+List of terms to be studied
+
+    RTT (round-trip delay) = <...>
+
+    TCP delayed acknowledgment = <...>
+
+    MSL (minimum segment lifetime) = <...>
+
 List of questions to be answered:
     -        use socket(..., ... | SOCK_NONBLOCK, ...) with 'poll' on 'connect'
     2.4      how to set connection/response timeout for TCP + how TCP predicts Round-trip time (RTT)
@@ -165,6 +252,13 @@ List of questions to be answered:
                 see https://networkengineering.stackexchange.com/a/76462
                 understand clearly if necessary
 
-Search in this document for: 
+* * *
+
+Search in this document for
+
     <?>    all not fully got details  
     <...>  no information studied
+
+Additional literature
+
+    Richard Stevens - TCP/IP Illustrated, Vol. 1: The Protocols
