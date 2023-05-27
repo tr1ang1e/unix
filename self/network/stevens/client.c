@@ -1,9 +1,8 @@
 /*
     :: TCP
     :: Get timestamp in string format from server  
-    :: 2.01
-        - socket connection
-        - read from socket using 'read' in a simple loop
+    :: 2.02
+        - set struct sockaddr_in.sin_zero to 0
 
     $ ./__c --ip=<ip> --port=<port>
 */
@@ -35,7 +34,8 @@ int main(int argc, char** argv)
     {
         .sin_family = AF_INET,
         .sin_addr = { 0 },
-        .sin_port = htons(__port)
+        .sin_port = htons(__port),
+        .sin_zero = { 0 }                       // must be zeroed in some cases = better to do it always
     };
 
     rc = inet_pton(AF_INET, __ip, &server.sin_addr.s_addr);

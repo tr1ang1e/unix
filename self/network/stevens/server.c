@@ -1,10 +1,8 @@
 /*
     :: TCP
     :: Provide timestamp in string format. Iterative
-    :: 2.01
-        - accept socket connection
-        - write to socket using 'write' in a simple loop
-        - protect form passing '--ip' option
+    :: 2.02
+        - set struct sockaddr_in.sin_zero to 0
 
     $ ./__s --port=<port>
 */
@@ -36,7 +34,8 @@ int main(int argc, char** argv)
     {
         .sin_family = AF_INET,
         .sin_addr.s_addr = htonl(INADDR_ANY),   // specify interface to accept FROM
-        .sin_port = htons(__port)
+        .sin_port = htons(__port),
+        .sin_zero = { 0 }                       // must be zeroed in some cases = better to do it always
     };
 
     // bind socket

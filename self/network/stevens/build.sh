@@ -4,6 +4,14 @@ set -euo pipefail
 
 # --------------- args checking ----------------- #
 
+print_help()
+{
+    echo "Following arguments are available:
+        = build basic locally
+    rem = build basic locally and remotely
+    rch = run research build script"
+}
+
 if [[ $# -gt 1 ]];
 then
     echo "Wrong arguments number"
@@ -19,6 +27,11 @@ then
 
     case $1 in
 
+        "--help")
+            print_help
+            exit 0
+            ;;
+        
         "rem") 
             basic_remote=true 
             ;;
@@ -30,10 +43,7 @@ then
 
         *)
             echo "Uncknown argument: $1"
-            echo "Following are available:
-                      = build basic locally
-                  rem = build basic locally and remotely
-                  rch = run research build script"
+            print_help
             exit 0
             ;;
 
