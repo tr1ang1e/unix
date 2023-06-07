@@ -118,6 +118,12 @@ then
     # can't use '&&' inside remote command because SSH tool
     # requires the ';' should be used as commands separator
 
+    # useful command:
+    #       find ./lib ! -name "*.a" ! -name "lib" -type f,d -delete
+    # - find all files and dirs with names '*.a' and 'lib'
+    # - revert selection
+    # - delete final selection
+
     remoteBuildCommand="cd $remoteDir;
       mkdir $buildDir 2>/dev/null;
       cd $buildDir;

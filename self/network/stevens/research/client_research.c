@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 
     while (true)
     {
-        enter();
+        wait_for_enter();
 
         // write
         size_t written = write(sock, writeBuff, 1);

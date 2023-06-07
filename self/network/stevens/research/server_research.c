@@ -47,7 +47,7 @@ int main(int argc, char** argv)
         __console("Client accepted\n");
 
         // deal with client untill user input
-        enter();
+        wait_for_enter();
 
         // write
         // __unused snprintf(writeBuff, sizeof(writeBuff), <fmt>, <arg>);
