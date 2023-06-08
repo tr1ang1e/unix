@@ -9,15 +9,14 @@
 /*             P U B L I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
-ssize_t Readn(int fd, char* dest, size_t expRead)
+ssize_t Readn(int fd, char* dest, size_t reqCount)
 {
     ssize_t actRead = 0;
     size_t currRead;
-    char* currDest = dest;
     
-    while (actRead < expRead)
+    while (actRead < reqCount)
     {
-        currRead = read(fd, dest, expRead);
+        currRead = read(fd, dest, reqCount);
 
         if (currRead < 0)
         {
@@ -42,9 +41,50 @@ ssize_t Readn(int fd, char* dest, size_t expRead)
         {
             // another chunk of data have been read
             actRead += currRead;
-            currDest += currRead;
+            dest += currRead;
         }
+    }
 
+    return actRead;
+}
+
+ssize_t Readntime(int fd, char* dest, size_t reqCount, uint64_t maxTime)
+{
+    uint64_t startTime = get_time_ms();
+    ssize_t actRead = 0;
+    ssize_t currRead = 0;
+
+    while (true)
+    {
+        // time limit is reached
+        if ((get_time_ms() - startTime) >= maxTime)
+            break;
+
+        // all requested data are sent
+        if (actRead == reqCount)
+            break;
+
+        /* read another chunk of data */
+
+        currRead = Readn(fd, dest, reqCount);
+
+        if (-1 == currRead)
+        {
+            /*
+                error occur while reading, return:
+                    - error (-1) if no data were already sent to caller
+                    - number of bytes were already sent to caller if any
+            */
+            
+            actRead = (actRead != 0) ? actRead : -1;
+            break;   
+        }
+        else
+        {
+            actRead += currRead;
+            dest += currRead;
+            reqCount -= currRead;
+        }
     }
 
     return actRead;

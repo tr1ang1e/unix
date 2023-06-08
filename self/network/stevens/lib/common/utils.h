@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 /* --------------------------------------------------------- */
@@ -19,8 +20,12 @@
 #define __console(...)      printf(__VA_ARGS__)
 
 // numeric constants
-#define MAXLINE             1024
-#define LISTENQ             1024
+#define MAXLINE             1024U
+#define LISTENQ             1024U
+
+// time constants
+#define MS_PER_SEC          1000U
+#define NS_PER_MS		    1000000U
 
 // get string 
 #define MSTR(macro)         #macro          // macro name to string
@@ -49,6 +54,7 @@ typedef enum ByteOrder
 const char* Getenv(const char* name, const char* value);        // get environmental variable or default value
 void wait_for_enter();                                          // ask for any key to be pressed
 ByteOrder get_endiannes();                                      // get host endiannes
+uint64_t get_time_ms();                                         // get monotonic clock time in milliseconds
 
 
 #endif // UTILS_H

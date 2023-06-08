@@ -29,3 +29,15 @@ ByteOrder get_endiannes()
     ByteOrder endiannes = byte ? L_END : B_END;
     return endiannes;
 }
+
+uint64_t get_time_ms()
+{
+    struct timespec tms;
+	__unused clock_gettime(CLOCK_MONOTONIC, &tms);
+
+	uint64_t ms = 0;
+    ms += ((uint64_t)tms.tv_sec) * MS_PER_SEC;
+	ms += tms.tv_nsec / NS_PER_MS;
+
+    return ms;
+}

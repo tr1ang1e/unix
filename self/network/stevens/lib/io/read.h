@@ -29,8 +29,9 @@
 /*                    F U N C T I O N S                      */
 /* --------------------------------------------------------- */
 
-ssize_t Readn(int fd, char* dest, size_t expRead);          // read expRead or less bytes, return -1 if no data read and error occur
-ssize_t Readnbuf(int fd, char* dest, size_t reqCount);      // return getCount or less from bufferized read
+ssize_t Readn(int fd, char* dest, size_t reqCount);                         // read reqCount or less bytes, return -1 if no data read and error occur
+ssize_t Readntime(int fd, char* dest, size_t reqCount, uint64_t maxTime);   // read as much data as might be read during ms time but not more than reqCount 
+ssize_t Readnbuf(int fd, char* dest, size_t reqCount);                      // read reqCount or less bytes, buffered
 
 
 #endif // READ_H
