@@ -27,6 +27,28 @@ char* Sock_ntop(const struct sockaddr* addr, bool portRequired)
     return result;
 }
 
+char* Sock_getsidename(int sockfd, GETSIDENAME callback, bool portRequired)
+{
+    /*
+        - 'callback' might be getsockname() or getpeername()
+        -  tested only for AF_INET and AF_INET6 
+    */
+    
+    char* result = NULL;
+    struct sockaddr sideName = { 0 };
+    socklen_t sideNameLen = sizeof(sideName);
+
+    int rc = callback(sockfd, &sideName, &sideNameLen);
+    if (-1 != rc)
+    {
+        sa_family_t af = sideName.sa_family; 
+        if ((AF_INET == af) || (AF_INET6 == af))
+            result = Sock_ntop(&sideName, portRequired);
+    }
+
+    return result;
+}
+
 in_port_t Sock_get_port(const struct sockaddr* addr)
 {
     in_port_t port = 0;
@@ -209,7 +231,7 @@ char* sock_ntop(const struct sockaddr* addr, bool portRequired)
 {
     // common used data
     char* result = NULL;
-    static char buffer[108 + 1 + 5] = { 0 };    // max Unix domain pathname length [man 7 unix] + '.' + max port length
+    static char buffer[108 + 1 + 5] = { 0 };    // max Unix domain pathname length [man 7 unix] + IP_PORT_DELIM + max port length
     int err = 0;
 
     switch (addr->sa_family)
@@ -229,7 +251,7 @@ char* sock_ntop(const struct sockaddr* addr, bool portRequired)
                 break;
 
             char portstr[7] = { 0 };
-            snprintf(portstr, sizeof(portstr), ".%d", port);
+            snprintf(portstr, sizeof(portstr), IP_PORT_DELIM "%d", port);
             __unused strcat(buffer, portstr);
         }
 

@@ -12,7 +12,7 @@
 ssize_t Readn(int fd, char* dest, size_t reqCount)
 {
     ssize_t actRead = 0;
-    size_t currRead;
+    ssize_t currRead;
     
     while (actRead < reqCount)
     {

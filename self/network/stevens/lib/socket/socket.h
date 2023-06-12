@@ -12,10 +12,25 @@
 
 
 /* --------------------------------------------------------- */
+/*                   H E L P   M A C R O S                   */
+/* --------------------------------------------------------- */
+
+#define IP_PORT_DELIM   ":"
+
+
+/* --------------------------------------------------------- */
+/*                         T Y P E S                         */
+/* --------------------------------------------------------- */
+
+typedef int (*GETSIDENAME)(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+
+/* --------------------------------------------------------- */
 /*                    F U N C T I O N S                      */
 /* --------------------------------------------------------- */
 
 char* Sock_ntop(const struct sockaddr* addr, bool portRequired);
+char* Sock_getsidename(int sockfd, GETSIDENAME callback, bool portRequired);
 in_port_t Sock_get_port(const struct sockaddr* addr);
 int Sock_bind_wild(int sockfd, int af);
 bool Sock_cmp_addr(const struct sockaddr* addr1, const struct sockaddr* addr2);

@@ -15,8 +15,9 @@ int main(int argc, char** argv)
     struct sockaddr_in server = 
     {
         .sin_family = AF_INET,
-        .sin_addr.s_addr = htonl(INADDR_ANY),   // specify interface to accept FROM
-        .sin_port = htons(__port)
+        .sin_addr.s_addr = htonl(INADDR_ANY),   // specify local interface IP to associate with socket
+        .sin_port = htons(__port),
+        .sin_zero = { 0 }
     };
 
     // bind socket
@@ -24,6 +25,11 @@ int main(int argc, char** argv)
     if (-1 == rc)
         err_sys("bind() error");
 
+    // print interface IP
+    char* sideName = Sock_getsidename(lsock, getsockname, false);
+    if (NULL == sideName)  err_msg("Sock_getsidename() error");
+    else  __console("  Interface IP = %s\n\n", sideName);
+    
     // listen socket
     int backlog = atoi(Getenv("LISTENQ", VSTR(LISTENQ)));
     rc = listen(lsock, backlog);
@@ -38,22 +44,38 @@ int main(int argc, char** argv)
         csock = accept(lsock, NULL, NULL);
         if (-1 == csock)
         {
-            if (errno == EPROTO || errno == ECONNABORTED) continue;
-            else
-                err_sys("accept() error");
+            if (errno == EPROTO || errno == ECONNABORTED)  continue;
+            else  err_sys("accept() error");
         }
 
-        // debug
-        __console("Client accepted\n");
+        // get info about client
+        char* partnerSide = Sock_getsidename(csock, getpeername, true);
+        __console("Client %s accepted ", partnerSide);
 
-        // deal with client untill user input
-        wait_for_enter();
+        // get info about me
+        char* mySide = Sock_getsidename(csock, getsockname, false);
+        __console("on interface %s\n", mySide);
+       
+        wait_for_enter(":: Read data from buffer? ");
 
-        // write
-        // __unused snprintf(writeBuff, sizeof(writeBuff), <fmt>, <arg>);
-        // size_t written = write(csock, writeBuff, strlen(writeBuff));
-        // if (strlen(writeBuff) != written)
-        //    err_sys("write() error"); 
+        // read
+        char readBuff[MAXLINE + 1] = { 0 }; 
+        while ( (rc = read(csock, readBuff, MAXLINE)) > 0 )
+        {
+            readBuff[rc] = '\0';
+            if (EOF == fputs(readBuff, stdout))
+                err_sys("fputs() error");
+            fflush(stdout);
+
+            // loop management
+            int input = wait_for_enter(" :: [B]reak or read another chunk? ");
+            if ((input == 'B') || (input == 'b'))
+                break;
+        }
+        if (rc < 0) 
+            err_sys("read() error"); 
+
+        wait_for_enter(":: Data read. Close connection? ");
 
         // close connection
         rc = close(csock);
@@ -65,6 +87,8 @@ int main(int argc, char** argv)
     rc = close(lsock);
     if (-1 == rc)
         err_sys("close() listen socket error");
+
+    /* --------------------------------------------------------------------------------------------- */
 
     exit(EXIT_SUCCESS);
 }

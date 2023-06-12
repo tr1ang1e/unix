@@ -33,7 +33,7 @@ int main(int argc, char** argv)
     struct sockaddr_in server = 
     {
         .sin_family = AF_INET,
-        .sin_addr.s_addr = htonl(INADDR_ANY),   // specify interface to accept FROM
+        .sin_addr.s_addr = htonl(INADDR_ANY),   // specify local interface IP to associate with socket
         .sin_port = htons(__port),
         .sin_zero = { 0 }                       // must be zeroed in some cases = better to do it always
     };
@@ -57,9 +57,8 @@ int main(int argc, char** argv)
         csock = accept(lsock, NULL, NULL);
         if (-1 == csock)
         {
-            if (errno == EPROTO || errno == ECONNABORTED) continue;
-            else
-                err_sys("accept() error");
+            if (errno == EPROTO || errno == ECONNABORTED)  continue;
+            else  err_sys("accept() error");
         }
 
         // debug
@@ -68,7 +67,7 @@ int main(int argc, char** argv)
         // write
         time_t ticks = time(NULL);
         __unused snprintf(writeBuff, sizeof(writeBuff), "%.24s\r\n", ctime(&ticks));
-        size_t written = write(csock, writeBuff, strlen(writeBuff));
+        ssize_t written = write(csock, writeBuff, strlen(writeBuff));
         if (strlen(writeBuff) != written)
             err_sys("write() error"); 
 

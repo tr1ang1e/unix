@@ -16,7 +16,8 @@ int main(int argc, char** argv)
     {
         .sin_family = AF_INET,
         .sin_addr = { 0 },
-        .sin_port = htons(__port)
+        .sin_port = htons(__port),
+        .sin_zero = { 0 }
     };
 
     rc = inet_pton(AF_INET, __ip, &server.sin_addr.s_addr);
@@ -28,18 +29,23 @@ int main(int argc, char** argv)
     if (-1 == rc)
         err_sys("connect() error");
 
+    // address and port in net byte order
+    __console("    hex = %08X:%04X \n", server.sin_addr.s_addr, __port);
+
     char writeBuff[MAXLINE + 1] = { 0 };
     writeBuff[0] = 'A';
 
     while (true)
     {
-        wait_for_enter();
+        wait_for_enter(":: Send byte to server? "); 
 
         // write
-        size_t written = write(sock, writeBuff, 1);
+        ssize_t written = write(sock, writeBuff, 1);
         if (1 != written)
             err_sys("write() error"); 
-    }
+    };
+
+    wait_for_enter(":: Data sent. Close connection? ");
 
     // read
     // char readBuff[MAXLINE + 1] = { 0 }; 
@@ -56,6 +62,9 @@ int main(int argc, char** argv)
     rc = close(sock);
     if (-1 == rc)
         err_sys("close() error");
+
+
+    wait_for_enter(":: Connection closed. Finish execution? ");
 
     exit(EXIT_SUCCESS);
 }

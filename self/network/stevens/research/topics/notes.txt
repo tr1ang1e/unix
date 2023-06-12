@@ -235,6 +235,17 @@ TCP SENDER BUFFER PROCESSING
 
 * * *
 
+TCP FUNCTIONS NUANCES
+
+    [ SOCKET  ] = <...>
+    [ BIND    ] = <...>
+    [ CONNECT ] = <...>
+    [ LISTEN  ] = <...>
+    [ ACCEPT  ] = <...>
+    [ CLOSE   ] = <...>
+
+* * *
+
 List of terms to be studied
 
     RTT (round-trip delay) = <...>
@@ -248,9 +259,6 @@ List of questions to be answered:
     2.4      how to set connection/response timeout for TCP + how TCP predicts Round-trip time (RTT)
     2.6      how TRANSPORT layer (e.g. TCP) parameters connected with APPLICATION layer experience?
     -        local vs. external IP in context of bind() function and 'ifconfig' utility
-    2.11     "... MTU IPv4 min - 68 byte ..." - incorrect formulation
-                see https://networkengineering.stackexchange.com/a/76462
-                understand clearly if necessary
 
 * * *
 

@@ -34,3 +34,11 @@ Request for comments (RFC):
     UDP = RFC 768
     TCP = RFC 793, 1323, 2581, 2988, 3390
     SCTP = RFC 3286 (introduction), 2960, 3309
+
+                * * *
+
+Problems and possible solutions:
+
+    bind() error: Address already in use
+        $ netstat -tulpn
+        $ kill <pid>

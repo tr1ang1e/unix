@@ -27,6 +27,9 @@
 #define MS_PER_SEC          1000U
 #define NS_PER_MS		    1000000U
 
+// io constants
+#define CONSOLE_LINE        100
+
 // get string 
 #define MSTR(macro)         #macro          // macro name to string
 #define VSTR(macro)         MSTR(macro)     // macro value to string
@@ -52,7 +55,8 @@ typedef enum ByteOrder
 /* --------------------------------------------------------- */
 
 const char* Getenv(const char* name, const char* value);        // get environmental variable or default value
-void wait_for_enter();                                          // ask for any key to be pressed
+int wait_for_enter(const char* prompt);                         // ask for one symbol or new line character
+void clear_n_chars(size_t n);                                   // remove n chars from stdout, clear line if n is 0
 ByteOrder get_endiannes();                                      // get host endiannes
 uint64_t get_time_ms();                                         // get monotonic clock time in milliseconds
 

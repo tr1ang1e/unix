@@ -41,6 +41,7 @@ in_port_t __port = 1111;                // random
 
 static void parse_cli_args(int argc, char** argv);
 static void print_start_state();
+static void register_sighandlers(SideType side);
 
 
 /* --------------------------------------------------------- */
@@ -51,7 +52,8 @@ void init(SideType side, int argc, char** argv)
 {
     __whoami = side;
     parse_cli_args(argc, argv);
-    print_start_state();
+    print_start_state(side);
+    register_sighandlers(side);
 }
 
 
@@ -136,21 +138,35 @@ void print_start_state()
     {
         __console("  CLIENT ...........    \n");
         __console("  Server to connect:    \n");
-        __console("    IP = %s             \n", __ip);          
-        __console("    port = %d           \n", __port); 
-        __console("                        \n");
-
+        __console("    address = %s:%d     \n", __ip, __port);          
+        
     } break;
 
     case SIDE_SERVER:
     {
         __console("  SERVER ...........    \n");
         __console("  Listen port = %d      \n", __port);
-        __console("                        \n");
 
     } break;
 
     default: 
+        break;
+    }
+}
+
+void register_sighandlers(SideType side)
+{
+    switch (side)
+    {
+    case SIDE_CLIENT:
+    case SIDE_SERVER:
+    {
+		struct sigaction ignorance = { .sa_handler = SIG_IGN, .sa_flags = 0 };
+		__unused sigaction(SIGPIPE, &ignorance, NULL);
+    }
+    break;
+
+    default:
         break;
     }
 }

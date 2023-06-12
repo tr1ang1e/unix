@@ -15,10 +15,33 @@ const char* Getenv(const char* name, const char* value)
     return env ? env : value;
 }
 
-void wait_for_enter()
+int wait_for_enter(const char* prompt)
 {
-    __console("> ");
-    __unused getchar();
+    __console("%s", prompt ? prompt : "");
+    static char input[2] = { 0 };
+    __unused fgets(input, sizeof(input), stdin);
+    __unused fflush(stdout);
+
+    return input[0];
+}
+
+void clear_n_chars(size_t n)
+{
+    if (0 == n)
+    {
+        putchar('\r');
+        printf("%-" VSTR(CONSOLE_LINE) "s", "");
+        putchar('\r');
+    }
+    else
+    {
+        for (int i = 0; i < n; ++i)
+            putchar('\b');       
+        for (int i = 0; i < n; ++i)
+            putchar(' ');
+        for (int i = 0; i < n; ++i)
+            putchar('\b');
+    }
 }
 
 ByteOrder get_endiannes()

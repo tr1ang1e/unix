@@ -1,7 +1,4 @@
 .*
-__*
-*.a
-credentials*
 
 !.gitkeep
 !.gitignore
