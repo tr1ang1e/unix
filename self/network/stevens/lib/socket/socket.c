@@ -35,13 +35,13 @@ char* Sock_getsidename(int sockfd, GETSIDENAME callback, bool portRequired)
     */
     
     char* result = NULL;
-    struct sockaddr sideName = { 0 };
+    struct sockaddr_storage sideName = { 0 };
     socklen_t sideNameLen = sizeof(sideName);
 
     int rc = callback(sockfd, &sideName, &sideNameLen);
     if (-1 != rc)
     {
-        sa_family_t af = sideName.sa_family; 
+        sa_family_t af = sideName.ss_family; 
         if ((AF_INET == af) || (AF_INET6 == af))
             result = Sock_ntop(&sideName, portRequired);
     }

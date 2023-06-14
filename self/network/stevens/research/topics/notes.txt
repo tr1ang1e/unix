@@ -1,8 +1,9 @@
 
-KERNEL DOCUMENTATION    
+KERNEL DOCUMENTATION
 
     https://tldp.org
     https://www.kernel.org/doc/html/latest/
+    https://www.kernel.org/doc/Documentation/
 
 KERNEL PARAMETERS
 
@@ -73,6 +74,12 @@ MODEL PARAMETERS
 
 * * *
 
+TCP STATES 
+
+    enum = https://elixir.bootlin.com/linux/latest/source/include/net/tcp_states.h
+    EFSM = https://www.medianet.cs.kent.edu/techreports/TR2005-07-22-tcp-EFSM.pdf\
+    diagnostic (tcp_diag) = https://stackoverflow.com/questions/8236574/how-do-i-use-tcp-diag-with-c
+
 TCP HEADER
 
     PORT, sender              16
@@ -111,12 +118,12 @@ TCP OPTIONS
 
     TIMESTAMP OPTION = [RFC 1323]
 
+* * *
+
 TCP DATA MAX SIZE
 
     if IPv4  >>  IP data max = 65515 (65535 - IP header)      >>  TCP data max = 65495 (65515 - TCP header) 
     if IPv6  >>  IP data max = 65535 (header is independent)  >>  TCP data nax = 65515 (65635 - TCP header)
-
-* * *
 
 TCP RECEIVER BUFFER SIZE
 
@@ -187,8 +194,6 @@ TCP RECEIVER BUFFER SIZE
             reality: almost entire TCP core code refers to /proc/sys/net/ipv4/tcp_rmem only
             read: https://stackoverflow.com/a/35438236
 
-* * *
-
 TCP SENDER WINDOW SIZE = derivative of:
 
     1. receiver window size = how much data receiver can handle
@@ -235,14 +240,17 @@ TCP SENDER BUFFER PROCESSING
 
 * * *
 
-TCP FUNCTIONS NUANCES
+TCP TIMERS
 
-    [ SOCKET  ] = <...>
-    [ BIND    ] = <...>
-    [ CONNECT ] = <...>
-    [ LISTEN  ] = <...>
-    [ ACCEPT  ] = <...>
-    [ CLOSE   ] = <...>
+                                START VALUE                 INCREASING              TRIES                   COMMENT
+
+    1 - SYN retransmition       hardcoded to 1              t ~ t*2                 tcp_syn_retries         time waiting before retrying SYN sending
+    2 - Retransmission          based on RTT, [RFC 793]     up to hardcoded         tcp_retries1,2          current = `ss -i`, change min per route = `ip route change <route> rto_min <n>ms`         
+    3 - Persistent              ...                         ...                     ...                     send Probe segment of 1 byte after getting 0 in Window size header field
+    4 - Keep Alive              tcp_keepalive_intvl         same for all probes     tcp_keepalive_probes    tcp_keepalive_time = time after last received segment to send first keepalive probe
+    5 - FIN                     tcp_fin_timeout             ...                     works only once         time waiting final FIN from parter
+    6 - Time Wait               tcp_tw_timeout              ...                     works only once         time waiting in TIME_WAIT state
+    7. ...
 
 * * *
 

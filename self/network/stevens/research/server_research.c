@@ -88,7 +88,5 @@ int main(int argc, char** argv)
     if (-1 == rc)
         err_sys("close() listen socket error");
 
-    /* --------------------------------------------------------------------------------------------- */
-
     exit(EXIT_SUCCESS);
 }

@@ -40,5 +40,5 @@ Request for comments (RFC):
 Problems and possible solutions:
 
     bind() error: Address already in use
-        $ netstat -tulpn
+        $ netstat -tulpn  /  $ lsof -i:<port>
         $ kill <pid>
