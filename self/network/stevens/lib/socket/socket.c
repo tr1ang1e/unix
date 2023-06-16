@@ -17,13 +17,81 @@ static int sock_bind_wild(int sockfd, int af);
 /*             P U B L I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
+/* basic socket functions */
+
+int Socket(int domain, int type, int protocol)
+{
+    __trace("%s", "Socket(x x)");
+    
+    int sock = socket(domain, type, protocol);
+    if (-1 == sock)
+        error("socket() error");
+    return sock;
+}
+
+void Bind(int sockfd, struct sockaddr* addr, socklen_t addrlen)
+{
+    __trace("Bind(sokfd=%d x x)", sockfd);
+
+    int rc = bind(sockfd, addr, addrlen);
+    if (-1 == rc)
+        error("bind() error");
+}
+
+void Connect(int sockfd, struct sockaddr* addr, socklen_t addrlen)
+{
+    __trace("Connect(sokfd=%d x x)", sockfd);
+    
+    int rc = connect(sockfd, addr, addrlen);
+    if (-1 == rc)
+        error("connect() error");
+}
+
+int Accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
+{
+    __trace("Accept(sokfd=%d x x)", sockfd);
+
+    int clientSock = accept(sockfd, NULL, NULL);
+    if (-1 == clientSock)
+    {
+        if ((EPROTO == errno) || (ECONNABORTED == errno)) return -1;
+        else  error("accept() error");
+    }
+}
+
+void Listen(int sockfd)
+{
+    __trace("Listen(sokfd=%d x)", sockfd);
+
+    int backlog = Sock_get_backlog();
+    int rc = listen(sockfd, backlog);
+    if (-1 == rc)
+        error("listen() error");
+}
+
+void Close(int sockfd)
+{
+    __trace("Close(sokfd=%d x)", sockfd);
+
+    int rc = close(sockfd);
+    if (-1 == rc)
+        error("close() listen socket error");
+}
+
+/* helper socket functions */
+
+void Sock_pton(int af, const char* restrict src, void* restrict dst)
+{
+    int rc = inet_pton(af, src, dst);
+    if (0 == rc)
+        error("inet_pton() error, IP = %s", src);
+}
+
 char* Sock_ntop(const struct sockaddr* addr, bool portRequired)
 {
     char* result = sock_ntop(addr, portRequired);
     if (NULL == result)
-    {
-        err_sys("sock_ntop() error");
-    }
+        error("sock_ntop() error");
     return result;
 }
 
@@ -38,12 +106,12 @@ char* Sock_getsidename(int sockfd, GETSIDENAME callback, bool portRequired)
     struct sockaddr_storage sideName = { 0 };
     socklen_t sideNameLen = sizeof(sideName);
 
-    int rc = callback(sockfd, &sideName, &sideNameLen);
+    int rc = callback(sockfd, (struct sockaddr*)&sideName, &sideNameLen);
     if (-1 != rc)
     {
         sa_family_t af = sideName.ss_family; 
         if ((AF_INET == af) || (AF_INET6 == af))
-            result = Sock_ntop(&sideName, portRequired);
+            result = Sock_ntop((struct sockaddr*)&sideName, portRequired);
     }
 
     return result;
@@ -74,10 +142,17 @@ int Sock_bind_wild(int sockfd, int af)
 {
 	int	port = sock_bind_wild(sockfd, af);
     if (port < 0)
-    {
-		err_sys("sock_bind_wild() error");
-    }
+		error("sock_bind_wild() error");
 	return port;
+}
+
+int Sock_get_backlog()
+{
+    int requested = atoi(Getenv("LISTENQ", VSTR(LISTENQ)));
+    int maxAllowed = 0;
+    get_proc_value("/proc/sys/net/core/somaxconn", single_token_to_num, (void*)&maxAllowed);
+
+    return (requested > maxAllowed) ? maxAllowed : requested;
 }
 
 bool Sock_cmp_addr(const struct sockaddr* addr1, const struct sockaddr* addr2)

@@ -16,35 +16,26 @@ bool __daemon_proc = false;             // not daemon by default
 /*             S T A T I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
-static void err_print_err(bool useErrno, const char* fmt, va_list args);    // format and flush error message into 'stderr'
+static void print_err(bool useErrno, const char* fmt, va_list args);    // format and flush error message into 'stderr'
 
 
 /* --------------------------------------------------------- */
 /*             P U B L I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
-void err_msg(const char *fmt, ...)
+void warning(const char *fmt, ...)
 {
     __va_init(args, fmt);
-    err_print_err(false, fmt, args);
+    print_err(false, fmt, args);
     __va_destroy(args);
 
     return;
 }
 
-void err_quit(const char* fmt, ...) 
+void error(const char *fmt, ...)
 {
     __va_init(args, fmt);
-    err_print_err(false, fmt, args);
-    __va_destroy(args);
-
-    exit(EXIT_FAILURE);
-}
-
-void err_sys(const char *fmt, ...)
-{
-    __va_init(args, fmt);
-    err_print_err(true, fmt, args);
+    print_err(true, fmt, args);
     __va_destroy(args);
 
     exit(EXIT_FAILURE);
@@ -55,7 +46,7 @@ void err_sys(const char *fmt, ...)
 /*             S T A T I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
-void err_print_err(bool useErrno, const char* fmt, va_list args)
+void print_err(bool useErrno, const char* fmt, va_list args)
 {
     int errnoKeep = errno;
     char msg[MAXLINE] = { 0 };

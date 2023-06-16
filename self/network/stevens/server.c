@@ -1,11 +1,14 @@
 /*
     :: TCP
-    :: Provide timestamp in string format. Iterative
-    :: 2.02
-        - set struct sockaddr_in.sin_zero to 0
+    :: Echo server. Receive string from client and send it back
+    :: 3.01
 
     $ ./__s --port=<port>
 */
+
+
+#define DEBUG
+#define TRACE
 
 #include "lib.h"
 
@@ -13,6 +16,8 @@
 /* --------------------------------------------------------- */
 /*             S T A T I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
+
+void handle_client(int sockfd);
 
 
 /* --------------------------------------------------------- */
@@ -23,65 +28,41 @@ int main(int argc, char** argv)
 {
     init(SIDE_SERVER, argc, argv);
     int rc = 0;
+    int lsock = Socket(AF_INET, SOCK_STREAM, 0);
 
-    // create listen socket
-    int lsock = socket(AF_INET, SOCK_STREAM, 0);
-    if (-1 == lsock)
-        err_sys("socket() error");
-
-    // configure server
-    struct sockaddr_in server = 
+    struct sockaddr_in server =
     {
         .sin_family = AF_INET,
-        .sin_addr.s_addr = htonl(INADDR_ANY),   // specify local interface IP to associate with socket
+        .sin_addr.s_addr = htonl(INADDR_ANY),
         .sin_port = htons(__port),
-        .sin_zero = { 0 }                       // must be zeroed in some cases = better to do it always
+        .sin_zero = { 0 }
     };
 
-    // bind socket
-    rc = bind(lsock, (struct sockaddr*)&server, sizeof(server));
-    if (-1 == rc)
-        err_sys("bind() error");
+    Bind(lsock, (struct sockaddr*)&server, sizeof(server));
+    Listen(lsock);
 
-    // listen socket
-    int backlog = atoi(Getenv("LISTENQ", VSTR(LISTENQ)));
-    rc = listen(lsock, backlog);
-    if (-1 == rc)
-        err_sys("listen() error");
-
-    int csock = 0;
-    char writeBuff[MAXLINE] = { 0 };
     while (true)
     {
-        // accept connection
-        csock = accept(lsock, NULL, NULL);
+        int csock = Accept(lsock, NULL, NULL);
         if (-1 == csock)
+            continue;
+        __debug("%s", "Accepted");
+
+        pid_t pid = Fork();
+        if (0 == pid)
         {
-            if (errno == EPROTO || errno == ECONNABORTED)  continue;
-            else  err_sys("accept() error");
-        }
+            Close(lsock);
+      
+            handle_client(csock);
+            Close(csock);
 
-        // debug
-        __console("Client accepted\n");
+            exit(EXIT_SUCCESS);
+        } 
 
-        // write
-        time_t ticks = time(NULL);
-        __unused snprintf(writeBuff, sizeof(writeBuff), "%.24s\r\n", ctime(&ticks));
-        ssize_t written = write(csock, writeBuff, strlen(writeBuff));
-        if (strlen(writeBuff) != written)
-            err_sys("write() error"); 
-
-        // close connection
-        rc = close(csock);
-        if (-1 == rc)
-            err_sys("close() client socket error");
+        Close(csock);
     }
 
-    // close socket
-    rc = close(lsock);
-    if (-1 == rc)
-        err_sys("close() listen socket error");
-
+    Close(lsock);
     exit(EXIT_SUCCESS);
 }
 
@@ -90,3 +71,29 @@ int main(int argc, char** argv)
 /*             S T A T I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
+void handle_client(int sockfd)
+{
+    char buffer[BUFSIZ] = { 0 };
+
+    while (true)
+    {
+        ssize_t actRead = read(sockfd, buffer, sizeof(buffer));
+        switch (actRead)
+        {
+        case -1:
+        {
+            error("read() error");
+            return;
+        } 
+
+        case 0:
+            return;
+        
+        default:
+        {
+            __unused Writen(sockfd, buffer, actRead);
+            break;
+        }
+        }       
+    }
+}

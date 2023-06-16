@@ -64,3 +64,34 @@ uint64_t get_time_ms()
 
     return ms;
 }
+
+int get_proc_value(const char* path, handle_proc_value callback, void* args)
+{
+    int result = -1;
+    FILE* file = NULL;
+    static char value[MAXLINE];
+    
+    do
+    {
+        file = fopen(path, "r");
+        if (NULL == file) 
+            break;
+             
+        char* rc = fgets(value, sizeof(value), file);
+        if (NULL == rc) 
+            break;
+
+        callback(value, args);
+        result = 0;
+    } while (0);
+    
+    if (file)
+        fclose(file);
+
+    return result;
+}
+
+void single_token_to_num(const char* token, void* result)
+{
+    *((int*)result) = atoi(token);
+}

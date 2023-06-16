@@ -21,9 +21,8 @@ extern bool __daemon_proc;
 /*                    F U N C T I O N S                      */
 /* --------------------------------------------------------- */
 
-void err_msg(const char *fmt, ...);         // nonfatal error unrelated to a system call. Print a message and return
-void err_quit(const char* fmt, ...);        // fatal error unrelated to a system call. Print a message and terminate 
-void err_sys(const char *fmt, ...);         // fatal error related to a system call. Print a message and terminate
+void warning(const char *fmt, ...);         // nonfatal error. Print a message and return
+void error(const char* fmt, ...);           // fatal error. Print a message and terminate 
 
 
 #endif // ERROR_H

@@ -11,6 +11,8 @@
 
 ssize_t Readn(int fd, char* dest, size_t reqCount)
 {
+    __trace("Readn(x x reqCount=%zu)", reqCount);
+    
     ssize_t actRead = 0;
     ssize_t currRead;
     
@@ -50,6 +52,8 @@ ssize_t Readn(int fd, char* dest, size_t reqCount)
 
 ssize_t Readntime(int fd, char* dest, size_t reqCount, uint64_t maxTime)
 {
+    __trace("Readntime(x x reqCount=%zu maxTime=%ld)", reqCount, maxTime);
+
     uint64_t startTime = get_time_ms();
     ssize_t actRead = 0;
     ssize_t currRead = 0;
@@ -105,6 +109,8 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
             2. and error returned from reading function          
     */
     
+    __trace("Readnbuf(x x reqCount=%zu)", reqCount);
+
     /* static data */
 
     static char buffer[BUFSIZ] = { 0 };     
@@ -139,9 +145,11 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
         */
 
         begin = buffer;
-        ssize_t availCount = Readn(fd, buffer, sizeof(buffer));
+        ssize_t availCount = read(fd, buffer, sizeof(buffer));
         
-        if (-1 == availCount)
+        switch (availCount)
+        {
+        case -1:
         {
             /*
                 error occur while reading, return:
@@ -152,12 +160,16 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
             actCount = (actCount != 0) ? actCount : -1;     
             end = buffer;
         }
-        else if (0 == availCount)
+        break;
+
+        case 0:
         {
             // no more data to be read
             end = buffer;
         }
-        else
+        break;
+
+        default:
         {
             // actualize end iterator state            
             end = buffer + availCount;
@@ -167,7 +179,63 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
             recursionResult = (recursionResult == -1) ? 0 : recursionResult;
             actCount += recursionResult;
         }
+        break;
+        }
     }
 
     return actCount;
+}
+
+ssize_t Readline(int fd, char* dest, size_t reqCount)
+{   
+    __trace("%s", "Readline(x x)");
+    
+    ssize_t actRead;
+    ssize_t rc;
+    char current;
+
+    for (actRead = 1; actRead < reqCount; ++actRead)
+    {
+        /*
+            Count from 1 to reqCount because:
+            - easier to count actual read bytes 
+            - count always less than reqCount so null terminator 
+                always might be placed to the destination buffer
+        */
+
+        rc = Readnbuf(fd, &current, 1);
+       
+        switch (rc)
+        {
+        case 1:  // symbol is read
+        {            
+            *dest++ = current;
+            if ('\n' == current)
+            {
+                *dest = '\0';
+                goto exit;
+            }
+        }
+        break;
+
+        case 0:  // EOF
+        {
+            if (1 == actRead)  actRead = 0;
+            else  *dest = '\0';
+            goto exit;
+        }
+        break;
+
+        default:  // error
+        {
+            actRead = -1;
+            goto exit;
+        }
+        break;
+        }
+    }
+
+exit:
+
+    return actRead;
 }

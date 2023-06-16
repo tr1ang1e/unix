@@ -118,7 +118,7 @@ void parse_cli_args(int argc, char** argv)
                     break;
 
                 default: 
-                    err_quit("Wrong CLI option '%s'", cliOpts[optIndex].name);
+                    error("Wrong CLI option '%s'", cliOpts[optIndex].name);
                     break;
                 }
             }

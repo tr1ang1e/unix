@@ -1,5 +1,5 @@
-#ifndef WRITE_H
-#define WRITE_H
+#ifndef PROCESS_H
+#define PROCESS_H
 
 
 /* --------------------------------------------------------- */
@@ -8,13 +8,14 @@
 
 #include "common/external.h"
 #include "common/utils.h"
+#include "error/error.h"
 
 
 /* --------------------------------------------------------- */
 /*                    F U N C T I O N S                      */
 /* --------------------------------------------------------- */
 
-ssize_t Writen(int fd, const char* src, size_t count);      // write count bytes, return -1 if no data sent
+pid_t Fork();
 
 
-#endif // WRITE_H
+#endif // PROCESS_H
