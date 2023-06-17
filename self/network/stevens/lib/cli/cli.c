@@ -160,11 +160,8 @@ void register_sighandlers(SideType side)
     {
     case SIDE_CLIENT:
     case SIDE_SERVER:
-    {
-		struct sigaction ignorance = { .sa_handler = SIG_IGN, .sa_flags = 0 };
-		__unused sigaction(SIGPIPE, &ignorance, NULL);
-    }
-    break;
+		__unused sigaction(SIGPIPE, &__sigIgnorance, NULL);
+        break;
 
     default:
         break;

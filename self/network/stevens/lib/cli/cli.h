@@ -9,6 +9,7 @@
 #include "common/external.h"
 #include "common/utils.h"
 #include "error/error.h"
+#include "process/process.h"
 
 
 /* --------------------------------------------------------- */

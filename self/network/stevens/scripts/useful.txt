@@ -1,0 +1,8 @@
+----- PS -------------------------------------------------------------------------------
+
+ps -A                               # all processes
+ps -t <tty> -o <column>,<column>    # procecces of <tty> terminal, info about <column>s
+
+----- NETSTAT -------------------------------------------------------------------------
+
+netstat -a                          # all net connections
