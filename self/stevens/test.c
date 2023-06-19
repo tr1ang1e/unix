@@ -24,7 +24,7 @@
                 -7 signal handler will be run again only once and
                 -17 signal handler will be run at the end
 
-    Conclusios: 
+    Conclusions: 
         - there is some queue for standard (not real-time signals)
         - delivery order wasn't found out yet
 */
