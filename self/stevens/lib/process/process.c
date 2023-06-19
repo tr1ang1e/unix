@@ -33,13 +33,20 @@ SIGHANDLER Sigaction(int signum, SIGHANDLER sigHandler)
 	struct sigaction oldact;
 	struct sigaction act = { 0 };
 
-	__unused sigemptyset(&act.sa_mask);
-	act.sa_handler = sigHandler;
-	act.sa_flags = 0;
-	#ifdef SA_RESTART
-	if (signum != SIGALRM)				// read [man 2 alarm]
-		act.sa_flags |= SA_RESTART;		// read [man 2 signal], [man 7 signal]
-	#endif
+	if (NULL == sigHandler)
+	{
+		act = __sigIgnorance;
+	}
+	else
+	{
+		__unused sigemptyset(&act.sa_mask);
+		act.sa_handler = sigHandler;
+		act.sa_flags = 0;
+		#ifdef SA_RESTART
+		if (signum != SIGALRM)				// read [man 2 alarm]
+			act.sa_flags |= SA_RESTART;		// read [man 2 signal], [man 7 signal]
+		#endif
+	}
 
 	int rc = sigaction(signum, &act, &oldact);
 	if (-1 == rc)

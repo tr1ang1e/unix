@@ -41,7 +41,10 @@ in_port_t __port = 1111;                // random
 
 static void parse_cli_args(int argc, char** argv);
 static void print_start_state();
+
+// signals handling
 static void register_sighandlers(SideType side);
+static void handle_sigchld(int signum);
 
 
 /* --------------------------------------------------------- */
@@ -154,16 +157,35 @@ void print_start_state()
     }
 }
 
+/* signals handling */
+
 void register_sighandlers(SideType side)
 {
     switch (side)
     {
     case SIDE_CLIENT:
+    {
+	    __unused Sigaction(SIGPIPE, NULL);
+
+    }
+    break;
+
     case SIDE_SERVER:
-		__unused sigaction(SIGPIPE, &__sigIgnorance, NULL);
-        break;
+    {
+	    __unused Sigaction(SIGPIPE, NULL);
+        __unused Sigaction(SIGCHLD, handle_sigchld);
+    }
+    break;
 
     default:
         break;
     }
+}
+
+void handle_sigchld(int signum)
+{
+    int waitStatus;
+    pid_t pid = wait(&waitStatus);
+
+    return;
 }

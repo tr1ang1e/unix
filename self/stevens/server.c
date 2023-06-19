@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo server. Receive string from client and send it back
-    :: 3.01
+    :: Echo server. Handle SIGCHLD signal
+    :: 3.02
 
     $ ./__s --port=<port>
 */

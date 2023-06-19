@@ -54,7 +54,7 @@ int Accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen)
     int clientSock = accept(sockfd, NULL, NULL);
     if (-1 == clientSock)
     {
-        if ((EPROTO == errno) || (ECONNABORTED == errno)) return -1;
+        if ((EPROTO == errno) || (ECONNABORTED == errno) || (EINTR == errno)) return -1;
         else  error("accept() error");
     }
 }

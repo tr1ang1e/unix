@@ -5,4 +5,4 @@ ps -t <tty> -o <column>,<column>    # procecces of <tty> terminal, info about <c
 
 ----- NETSTAT -------------------------------------------------------------------------
 
-netstat -a                          # all net connections
+netstat -a  | grep <filter>         # all net connections | filtered by <filter>
