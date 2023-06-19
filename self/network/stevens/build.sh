@@ -7,9 +7,21 @@ set -euo pipefail
 print_help()
 {
     echo "Following arguments are available:
-        = build basic locally
-    rem = build basic locally and remotely
-    rch = run research build script"
+    *no-arg* .... build basic locally
+    rem ......... build basic locally and remotely
+    rch ......... run research build script
+    test ........ build test.c file"
+}
+
+build_test()
+{
+    SOURCES="test.c"
+    HEADERS="./lib/"
+    LIB="__lib"
+    LIBSDIR="./lib"
+    OUTPUT="__t"
+
+    gcc $SOURCES -o $OUTPUT -I $HEADERS -l $LIB -L $LIBSDIR
 }
 
 if [[ $# -gt 1 ]];
@@ -39,6 +51,11 @@ then
         "rch")
             basic_local=false
             research=true
+            ;;
+
+        "test")
+            build_test
+            exit 0
             ;;
 
         *)
