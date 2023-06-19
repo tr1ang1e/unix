@@ -16,15 +16,17 @@
             2nd scenario:
                 kill  -7 <pid>      // handler will be run
                 kill -17 <pid>      // blocked signal ...
-                kill  -7 <pid>      // ... and another blocked signal
+                kill  -7 <pid>      // ... and another blocked signal ...
+                kill  -7 <pid>      // ... and some more ...
+                kill -17 <pid>      // ... and some more ...
             Result:
                 after -7 signal handler finishes it's work,
-                -17 signal handler will be skipped and
-                -7 signal handler will be run again
+                -7 signal handler will be run again only once and
+                -17 signal handler will be run at the end
 
     Conclusios: 
-        - there is no default queue in Linux signals
-        - only the last of blocked signals will be handled
+        - there is some queue for standard (not real-time signals)
+        - delivery order wasn't found out yet
 */
 
 
@@ -37,9 +39,9 @@ void sighand(int signum)
     {
     case SIGBUS:  // 7
     {
-        __console("start SUGBUS\n");
+        __console("start SIGBUS\n");
         sleep(20);
-        __console("end SUGBUS\n");
+        __console("end SIGBUS\n");
     }
     break;
 
