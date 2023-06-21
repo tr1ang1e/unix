@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo client. Get string from user, send to server, get it back and print  
-    :: 3.01
+    :: Echo client. Create several sockets to test server SIGCHLD handling
+    :: 3.02
 
     $ ./__c --ip=<ip> --port=<port>
 */
@@ -21,21 +21,37 @@ int main(int argc, char** argv)
 {
     init(SIDE_CLIENT, argc, argv);
     int rc = 0;  
-    int sock = Socket(AF_INET, SOCK_STREAM, 0);
 
-    struct sockaddr_in server =
+    /* 
+        create and connect multiple sockets in purpose of 
+        testing of server handles simultaneous SIGCHLD signals
+    */
+    
+    #define SOCKNUMBER 5
+    int sock[SOCKNUMBER] = { 0 };
+    
+    for (int s = 0; s < SOCKNUMBER; ++s) 
     {
-        .sin_family = AF_INET,
-        .sin_addr = { 0 },
-        .sin_port = htons(__port),
-        .sin_zero = { 0 }
-    };
-
-    Sock_pton(AF_INET, __ip, &server.sin_addr.s_addr);
-    Connect(sock, (struct sockaddr*)&server, sizeof(server));
+        sock[s] = Socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in server =
+        {
+            .sin_family = AF_INET,
+            .sin_addr = { 0 },
+            .sin_port = htons(__port),
+            .sin_zero = { 0 }
+        };
+        Sock_pton(AF_INET, __ip, &server.sin_addr.s_addr);
+        Connect(sock[s], (struct sockaddr*)&server, sizeof(server));
+    }
 
     __debug("%s", "Connected");
 
+    /*
+        echo logic is implemented only for one socket,
+        others are just to be closed together with the first
+    */
+
+    int echoSock = sock[0];
     char sendBuff[BUFSIZ] = { 0 };
     char recvBuff[BUFSIZ] = { 0 };
     while (true)
@@ -48,8 +64,8 @@ int main(int argc, char** argv)
         }
         __debug("fgets() result, len=%zu: %s", strlen(sendBuff), sendBuff);
 
-        __unused Writen(sock, sendBuff, strlen(sendBuff));
-        ssize_t actRead = Readline(sock, recvBuff, sizeof(recvBuff));
+        __unused Writen(echoSock, sendBuff, strlen(sendBuff));
+        ssize_t actRead = Readline(echoSock, recvBuff, sizeof(recvBuff));
         if (actRead != strlen(sendBuff))
             warning("Some data were lost");
 
@@ -57,6 +73,9 @@ int main(int argc, char** argv)
         __unused fflush(stdout);
     }
 
-    Close(sock);
+    // close all opened and connected sockets
+    for (int s = 0; s < SOCKNUMBER; ++s)
+        Close(sock[s]);
+    
     exit(EXIT_SUCCESS);
 }

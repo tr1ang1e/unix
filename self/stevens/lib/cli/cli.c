@@ -185,7 +185,14 @@ void register_sighandlers(SideType side)
 void handle_sigchld(int signum)
 {
     int waitStatus;
-    pid_t pid = wait(&waitStatus);
+    pid_t pid; 
+    
+    while (true)
+    {
+        pid = waitpid(-1, &waitStatus, WNOHANG);
+        if (0 >= pid)
+            break;
+    }
 
     return;
 }

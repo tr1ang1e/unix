@@ -278,3 +278,9 @@ Search in this document for
 Additional literature
 
     Richard Stevens - TCP/IP Illustrated, Vol. 1: The Protocols
+
+    Signals and Job control
+        - About signals = https://www.opennet.ru/base/dev/unix_signals.txt.html
+        - Pause and continue process = SIGSTOP, SIGCONT, man 2 pause
+        - Notes about SIGSTOP and SIGCONT = https://stackoverflow.com/a/72633647
+        - What is Job control = https://www.gnu.org/software/libc/manual/html_node/Job-Control.html
