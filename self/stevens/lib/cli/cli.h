@@ -10,6 +10,7 @@
 #include "common/utils.h"
 #include "error/error.h"
 #include "process/process.h"
+#include "socket/socket.h"
 
 
 /* --------------------------------------------------------- */
@@ -22,6 +23,19 @@ typedef enum SideType
     SIDE_CLIENT =  (1 << 30),
     SIDE_SERVER =  (1 << 31)
 } SideType;
+
+#define __SERVERS   \
+    X(LOOPBACK)     \
+    X(HOSTRY)       \
+    X(RPI)
+
+typedef enum ServerIP
+{
+    #define X(server) SERVER_##server,
+        __SERVERS
+        SERVER_MAX
+    #undef X
+} ServerIP;
 
 
 /* --------------------------------------------------------- */

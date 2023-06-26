@@ -9,9 +9,10 @@
 iface="-i eth0"
 verbose="-v"
 
-# filters
-host="host 185.186.246.53"      # remote host
-port="port 1111"                # local port
+# run
+port="port 1111"      # local port
+sudo tcpdump $iface $verbose $port
 
-
-sudo tcpdump $iface $verbose $host and $port
+# if host filter is required
+# host="host 185.186.246.53"      # remote host
+# sudo tcpdump $iface $verbose $host and $port

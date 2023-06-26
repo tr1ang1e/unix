@@ -27,7 +27,7 @@ eval $buildCommand
 #     ConstrolMaster auto
 #     ControlPath ~/.ssh/master-<user>@<host>:<path>
 
-remoteHost="root@185.186.246.53"
+remoteHost="$1"
 remoteDir="/root/projects/stevens"
 
 # can't use '&&' inside remote command because SSH tool

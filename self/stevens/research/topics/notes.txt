@@ -77,7 +77,7 @@ MODEL PARAMETERS
 TCP STATES 
 
     enum = https://elixir.bootlin.com/linux/latest/source/include/net/tcp_states.h
-    EFSM = https://www.medianet.cs.kent.edu/techreports/TR2005-07-22-tcp-EFSM.pdf\
+    EFSM = https://www.medianet.cs.kent.edu/techreports/TR2005-07-22-tcp-EFSM.pdf
     diagnostic (tcp_diag) = https://stackoverflow.com/questions/8236574/how-do-i-use-tcp-diag-with-c
 
 TCP HEADER
@@ -284,3 +284,5 @@ Additional literature
         - Pause and continue process = SIGSTOP, SIGCONT, man 2 pause
         - Notes about SIGSTOP and SIGCONT = https://stackoverflow.com/a/72633647
         - What is Job control = https://www.gnu.org/software/libc/manual/html_node/Job-Control.html
+
+    Dump analysis = https://stackoverflow.com/a/8306805

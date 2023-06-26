@@ -1,8 +1,17 @@
 #!/bin/sh
 
-# get info about socket state, timers. etc
-# reading /proc/ne/tcp is depricated in favor of 'tcp_diag'
-# for info see: https://www.kernel.org/doc/Documentation/networking/proc_net_tcp.txt
+'''
+    get info about socket state, timers. etc
+    reading /proc/net/tcp is depricated in favor of 'tcp_diag'
+    for info see: https://www.kernel.org/doc/Documentation/networking/proc_net_tcp.txt
+
+    IP:port output format is:
+        - hex
+        - IP = net byte order
+        - port = host byte order
+    To print from application and compare with output use:
+    printf("%08X:%04X", <ip>, <port>)
+'''
 
 while true
 do

@@ -4,6 +4,9 @@
     :: 3.02
 
     $ ./__c --ip=<ip> --port=<port>
+    Options values:
+        <ip>    IP, domain name or one of constants: LOOPBACK, HOSTRY, RPI
+        <port>  port value known from the server 
 */
 
 
@@ -56,6 +59,8 @@ int main(int argc, char** argv)
     char recvBuff[BUFSIZ] = { 0 };
     while (true)
     {
+        recvBuff[0] = '\0';
+        
         __unused fgets(sendBuff, sizeof(sendBuff), stdin);
         if ('\n' == sendBuff[0])
         {

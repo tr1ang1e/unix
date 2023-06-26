@@ -11,11 +11,11 @@
 
 int main(int argc, char** argv)
 {
+    int rc;
+    
     /* create socket */
 
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (-1 == sock)
-        err_sys("socket() error");
+    int sock = Socket(AF_INET, SOCK_STREAM, 0);
 
     /* bind and listen socket so that statistics is available for 'man 8 ss' */
 
@@ -26,14 +26,8 @@ int main(int argc, char** argv)
         .sin_port = htons(__port)
     };
 
-    int rc = bind(sock, (struct sockaddr*)&me, sizeof(me));
-    if (-1 == rc)
-        err_sys("bind() error");
-
-    int backlog = 0;
-    rc = listen(sock, backlog);
-    if (-1 == rc)
-        err_sys("listen() error");
+    Bind(sock, (struct sockaddr*)&me, sizeof(me));
+    Listen(sock);
 
     /* set and get SO_RCVBUF */
 
@@ -41,12 +35,12 @@ int main(int argc, char** argv)
     socklen_t optlen = sizeof(expected);
     rc = setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &expected, optlen);
     if (-1 == rc)
-        err_sys("setsockopt() error");
+        error("setsockopt() error");
 
     int actual = 0;
     rc = getsockopt(sock, SOL_SOCKET, SO_RCVBUF, &actual, &optlen);
     if (-1 == rc)
-        err_sys("getsockopt() error");
+        error("getsockopt() error");
 
     /* print info */
 
@@ -64,9 +58,7 @@ int main(int argc, char** argv)
 
     /* free resources */
 
-    rc = close(sock);
-    if (-1 == rc)
-        err_sys("close() error");
+    Close(sock);
 
 
     return 0;

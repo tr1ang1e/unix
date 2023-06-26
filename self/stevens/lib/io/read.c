@@ -146,7 +146,8 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
 
         begin = buffer;
         ssize_t availCount = read(fd, buffer, sizeof(buffer));
-        
+        __debug("read() result=%ld", availCount);
+
         switch (availCount)
         {
         case -1:
@@ -156,7 +157,8 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
                     - error (-1) if no data were already sent to caller
                     - number of bytes were already sent to caller if any
             */
-            
+            __debug("read() error: %s", strerror(errno));
+
             actCount = (actCount != 0) ? actCount : -1;     
             end = buffer;
         }

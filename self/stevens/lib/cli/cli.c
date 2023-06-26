@@ -25,13 +25,31 @@ typedef enum CliOptions
 
 
 /* --------------------------------------------------------- */
+/*                        G L O B A L                        */
+/* --------------------------------------------------------- */
+
+const char* serversAvailable[SERVER_MAX] = 
+{
+    [SERVER_LOOPBACK] = "127.0.0.1",
+    [SERVER_HOSTRY]   = "185.186.246.53",
+    [SERVER_RPI]      = "rpi.local"
+};
+
+const char* serversStrings[SERVER_MAX] =
+{
+    #define X(server) [SERVER_##server] = #server,
+        __SERVERS
+    #undef X
+};
+
+
+/* --------------------------------------------------------- */
 /*                      E X T E R N A L                      */
 /* --------------------------------------------------------- */
 
 SideType __whoami = SIDE_UNSPEC;        // should be cpecified
 
-// const char* __ip = "127.0.0.1";      // loopback
-const char* __ip = "185.186.246.53";    // hostry.com
+const char* __ip = "185.186.246.53";    // default
 in_port_t __port = 1111;                // random
 
 
@@ -41,6 +59,7 @@ in_port_t __port = 1111;                // random
 
 static void parse_cli_args(int argc, char** argv);
 static void print_start_state();
+static const char* resolve_server_ip(const char* optarg);
 
 // signals handling
 static void register_sighandlers(SideType side);
@@ -112,7 +131,11 @@ void parse_cli_args(int argc, char** argv)
                 switch (optIndex | __whoami)
                 {
                 case OPT_IP | SIDE_CLIENT:
-                    __ip = optarg;
+                    { 
+                        const char* temp = resolve_server_ip(optarg);
+                        if (NULL == temp)   warning("Wrong --ip option value: %s", optarg);
+                        else                __ip = temp;
+                    }
                     break;
 
                 case OPT_PORT | SIDE_CLIENT:
@@ -157,6 +180,33 @@ void print_start_state()
     }
 }
 
+const char* resolve_server_ip(const char* optarg)
+{
+    const char* string = optarg;
+
+    /* handle predefined constants */
+
+    for (int i = 0; i < SERVER_MAX; ++i)
+    {
+        int rc = strcmp(optarg, serversStrings[i]);
+        if (0 == rc)
+        {
+            string = serversAvailable[i]; 
+            break;
+        }
+    }
+
+    /* resolve domain name if necessary */
+
+    static char ipRepr[INET_COMMON_ADDRSTRLEN] = { 0 };
+    
+    bool result = Sock_getaddrinfo(AF_INET, string, ipRepr);
+    if (result) 
+        return ipRepr;
+    return NULL;
+}
+
+
 /* signals handling */
 
 void register_sighandlers(SideType side)
@@ -166,7 +216,6 @@ void register_sighandlers(SideType side)
     case SIDE_CLIENT:
     {
 	    __unused Sigaction(SIGPIPE, NULL);
-
     }
     break;
 

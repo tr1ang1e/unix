@@ -15,8 +15,8 @@
 /*                   H E L P   M A C R O S                   */
 /* --------------------------------------------------------- */
 
-#define IP_PORT_DELIM   ":"
-
+#define INET_COMMON_ADDRSTRLEN   128        // actually 108 [man 7 unix] but rounded to the power of 2
+#define IP_PORT_DELIM   ":"                 // just for string representation when passing to output
 
 /* --------------------------------------------------------- */
 /*                         T Y P E S                         */
@@ -29,7 +29,7 @@ typedef int (*GETSIDENAME)(int sockfd, struct sockaddr *addr, socklen_t *addrlen
 /*                    F U N C T I O N S                      */
 /* --------------------------------------------------------- */
 
-// basic socket functions
+// basic
 int Socket(int domain, int type, int protocol);
 void Bind(int sockfd, struct sockaddr* addr, socklen_t addrlen);
 void Connect(int sockfd, struct sockaddr* addr, socklen_t addrlen);
@@ -37,13 +37,16 @@ int Accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
 void Listen(int sockfd);
 void Close(int sockfd);
 
-// helper socket functions
+// utility
 void Sock_pton(int af, const char* restrict src, void* restrict dst);
 char* Sock_ntop(const struct sockaddr* addr, bool portRequired);
 char* Sock_getsidename(int sockfd, GETSIDENAME callback, bool portRequired);
 in_port_t Sock_get_port(const struct sockaddr* addr);
 int Sock_bind_wild(int sockfd, int af);
 int Sock_get_backlog();
+bool Sock_getaddrinfo(int af, const char* asciiName, char* ipRepr);
+
+// helper
 bool Sock_cmp_addr(const struct sockaddr* addr1, const struct sockaddr* addr2);
 bool Sock_cmp_port(const struct sockaddr* addr1, const struct sockaddr* addr2);
 void Sock_set_addr(struct sockaddr* addr, const void* src);

@@ -17,7 +17,7 @@ static int sock_bind_wild(int sockfd, int af);
 /*             P U B L I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
-/* basic socket functions */
+/* basic */
 
 int Socket(int domain, int type, int protocol)
 {
@@ -78,7 +78,7 @@ void Close(int sockfd)
         error("close() listen socket error");
 }
 
-/* helper socket functions */
+/* utility */
 
 void Sock_pton(int af, const char* restrict src, void* restrict dst)
 {
@@ -154,6 +154,76 @@ int Sock_get_backlog()
 
     return (requested > maxAllowed) ? maxAllowed : requested;
 }
+
+bool Sock_getaddrinfo(int af, const char* asciiName, char* ipRepr)
+{
+	/*
+        Get IP address according to given raw string
+        - if IP address is given, it will be returned itself
+        - if domain name is given, it will be resolved using getaddrinfo()
+
+        ipBuff lingth must be at least INET_COMMON_ADDRSTRLEN
+        as it is the universal length for address represntation,
+        see socket.h:INET_COMMON_ADDRSTRLEN
+    */  
+   
+    __trace("Sock_getaddrinfo(raw=%s x x)", asciiName);
+    
+    bool result = false;
+    int rc;
+
+	do
+	{
+        /* tansparent for IP address itself */
+
+		struct in_addr temp = { 0 };
+		rc = inet_pton(af, asciiName, (void*)&temp);
+		if (-1 == rc)       error("inet_pton() error");
+        else if (rc > 0)
+        {
+            // given string is already an IP address
+            memcpy(ipRepr, asciiName, strlen(asciiName) + 1);
+            result = true;
+            break;       
+        }
+
+		/* 
+            if we are here:
+                0 == rc and it means that
+                asciiName doesn't contain valid IP address
+            so we can try to retrieve IP address from given string by getaddrinfo()
+        */
+
+		struct addrinfo hints = { 0 };
+		hints.ai_family = af;
+		hints.ai_socktype = 0;
+
+        struct addrinfo* hostInfo = NULL;
+		rc = getaddrinfo(asciiName, NULL, &hints, &hostInfo);
+		if (0 != rc)
+            error("getaddrinfo() error");
+
+		for (struct addrinfo* info = hostInfo; info != NULL; info = hostInfo->ai_next)
+		{
+			const char* ip = sock_ntop(info->ai_addr, false);
+            if (ip != NULL)
+            {
+                memcpy(ipRepr, ip, strlen(ip) + 1);
+                result = true;
+
+                __debug("Resolved IP address for host name '%s' is %s", asciiName, ipRepr);
+                break;
+            }
+		}
+
+		freeaddrinfo(hostInfo);
+
+    } while (0);
+
+    return result;
+}
+
+/* helper */
 
 bool Sock_cmp_addr(const struct sockaddr* addr1, const struct sockaddr* addr2)
 {
