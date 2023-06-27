@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo server. Handle SIGCHLD signal
-    :: 3.02
+    :: Echo server. Read, manipulate and write binary data
+    :: 4.01
 
     $ ./__s --port=<port>
 */
@@ -77,7 +77,7 @@ void handle_client(int sockfd)
 
     while (true)
     {
-        ssize_t actRead = read(sockfd, buffer, sizeof(buffer));
+        ssize_t actRead = Readline(sockfd, buffer, sizeof(buffer));
         switch (actRead)
         {
         case -1:
@@ -90,8 +90,17 @@ void handle_client(int sockfd)
             return;
         
         default:
-        {
-            __unused Writen(sockfd, buffer, actRead);
+        {            
+            Coordinates coord;
+            deserialize_coordinates(&coord, buffer);
+
+            int32_t temp = coord.x;
+            coord.x = coord.z;
+            coord.z = temp;
+            serialize_coordinates(buffer, &coord);
+
+            size_t expSent = sizeof(Coordinates) + sizeof(char);            
+            __unused Writen(sockfd, buffer, expSent);
             break;
         }
         }       

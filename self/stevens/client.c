@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo client. Move send/receive logic into separated functions
-    :: 3.03
+    :: Echo client. Write initial data and read modified
+    :: 4.01
 
     $ ./__c --ip=<ip> --port=<port>
     Options values:
@@ -33,51 +33,33 @@ int main(int argc, char** argv)
     init(SIDE_CLIENT, argc, argv);
     int rc = 0;  
 
-    /* 
-        create and connect multiple sockets in purpose of 
-        testing of server handles simultaneous SIGCHLD signals
-    */
-    
-    #define SOCKNUMBER 5
-    int sock[SOCKNUMBER] = { 0 };
-    
-    for (int s = 0; s < SOCKNUMBER; ++s) 
+    int sock = Socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server =
     {
-        sock[s] = Socket(AF_INET, SOCK_STREAM, 0);
-        struct sockaddr_in server =
-        {
-            .sin_family = AF_INET,
-            .sin_addr = { 0 },
-            .sin_port = htons(__port),
-            .sin_zero = { 0 }
-        };
-        Sock_pton(AF_INET, __ip, &server.sin_addr.s_addr);
-        Connect(sock[s], (struct sockaddr*)&server, sizeof(server));
-    }
+        .sin_family = AF_INET,
+        .sin_addr = { 0 },
+        .sin_port = htons(__port),
+        .sin_zero = { 0 }
+    };
+    Sock_pton(AF_INET, __ip, &server.sin_addr.s_addr);
+    Connect(sock, (struct sockaddr*)&server, sizeof(server));
 
     __debug("%s", "Connected");
 
-    /*
-        echo logic is implemented only for one socket,
-        others are just to be closed together with the first
-    */
-
-    int echoSock = sock[0];
     while (true)
     {
-        size_t sent = send_data(echoSock);
+        size_t sent = send_data(sock);
         if (0 == sent)
             break;
         
-        size_t received = receive_data(echoSock);
+        size_t received = receive_data(sock);
         if (received != sent)
             warning("Some data were lost");
+        
+        break;  // send_data currently doesn't have interactivity
     }
 
-    // close all opened and connected sockets
-    for (int s = 0; s < SOCKNUMBER; ++s)
-        Close(sock[s]);
-    
+    Close(sock);
     exit(EXIT_SUCCESS);
 }
 
@@ -88,24 +70,29 @@ int main(int argc, char** argv)
 size_t send_data(int sock)
 {
     char sendBuff[BUFSIZ] = { 0 };
-    __unused fgets(sendBuff, sizeof(sendBuff), stdin);
-    if ('\n' == sendBuff[0])
+    Coordinates coord = 
     {
-        __console("Stopping client\n");
-        return 0;
-    }
+        .x = -1,
+        .y =  0,
+        .z =  1,
+    };
+    serialize_coordinates(sendBuff, &coord);
+    __console("Before: %d.%d.%d\n", coord.x, coord.y, coord.z);
 
-    __unused Writen(sock, sendBuff, strlen(sendBuff));
-    return strlen(sendBuff);
+    size_t expSent = sizeof(Coordinates) + sizeof(char);
+    size_t actSent = Writen(sock, sendBuff, expSent);
+
+    return actSent;
 }
 
 size_t receive_data(int sock)
 {
     char recvBuff[BUFSIZ] = { 0 };
+    Coordinates coord = { 0 };
 
     ssize_t actRead = Readline(sock, recvBuff, sizeof(recvBuff));
-    __unused fputs(recvBuff, stdout);
-    __unused fflush(stdout);
+    deserialize_coordinates(&coord, recvBuff);
 
+    __console("After: %d.%d.%d\n", coord.x, coord.y, coord.z);
     return actRead;
 }

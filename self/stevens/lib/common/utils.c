@@ -95,3 +95,21 @@ void single_token_to_num(const char* token, void* result)
 {
     *((int*)result) = atoi(token);
 }
+
+void serialize_coordinates(void* dest, const Coordinates* src)
+{
+    size_t memberLen = sizeof(int32_t);
+    int32_t temp;
+
+    size_t offset = 0;      temp = htonl(src->x);   memcpy(dest + offset, &temp, memberLen);
+    offset += memberLen;    temp = htonl(src->y);   memcpy(dest + offset, &temp, memberLen);
+    offset += memberLen;    temp = htonl(src->z);   memcpy(dest + offset, &temp, memberLen);
+    offset += memberLen;    ((char*)dest)[offset] = '\n';    // protocol implementation
+}
+
+void deserialize_coordinates(Coordinates* dest, const void* src)
+{
+    size_t offset = 0;      dest->x = ntohl(*(((uint32_t*)src) + offset));
+    offset += 1;            dest->y = ntohl(*(((uint32_t*)src) + offset));
+    offset += 1;            dest->z = ntohl(*(((uint32_t*)src) + offset));
+}

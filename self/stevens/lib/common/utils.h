@@ -6,9 +6,11 @@
 /*                     I N C L U D E S                       */
 /* --------------------------------------------------------- */
 
+#include <arpa/inet.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 
@@ -75,6 +77,12 @@ typedef enum ByteOrder
 
 typedef void (*handle_proc_value)(const char*, void*);
 
+typedef struct Coordinates
+{
+    int32_t x;
+    int32_t y;
+    int32_t z;
+} Coordinates;
 
 /* --------------------------------------------------------- */
 /*                    F U N C T I O N S                      */
@@ -85,9 +93,10 @@ int wait_for_enter(const char* prompt);                                     // a
 void clear_n_chars(size_t n);                                               // remove n chars from stdout, clear line if n is 0
 ByteOrder get_endiannes();                                                  // get host endiannes
 uint64_t get_time_ms();                                                     // get monotonic clock time in milliseconds
-
 int get_proc_value(const char* path, handle_proc_value, void*);             // get value from specified /proc/... file
 void single_token_to_num(const char* token, void* result);                  // cast string to number
 
+void serialize_coordinates(void* dest, const Coordinates* src);
+void deserialize_coordinates(Coordinates* dest, const void* src);
 
 #endif // UTILS_H
