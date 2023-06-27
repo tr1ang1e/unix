@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo client. Create several sockets to test server SIGCHLD handling
-    :: 3.02
+    :: Echo client. Move send/receive logic into separated functions
+    :: 3.03
 
     $ ./__c --ip=<ip> --port=<port>
     Options values:
@@ -14,6 +14,14 @@
 #define TRACE
 
 #include "lib.h"
+
+
+/* --------------------------------------------------------- */
+/*             S T A T I C   F U N C T I O N S               */
+/* --------------------------------------------------------- */
+
+static size_t send_data(int sock);
+static size_t receive_data(int sock);
 
 
 /* --------------------------------------------------------- */
@@ -55,27 +63,15 @@ int main(int argc, char** argv)
     */
 
     int echoSock = sock[0];
-    char sendBuff[BUFSIZ] = { 0 };
-    char recvBuff[BUFSIZ] = { 0 };
     while (true)
     {
-        recvBuff[0] = '\0';
-        
-        __unused fgets(sendBuff, sizeof(sendBuff), stdin);
-        if ('\n' == sendBuff[0])
-        {
-            __console("Stopping client\n");
+        size_t sent = send_data(echoSock);
+        if (0 == sent)
             break;
-        }
-        __debug("fgets() result, len=%zu: %s", strlen(sendBuff), sendBuff);
-
-        __unused Writen(echoSock, sendBuff, strlen(sendBuff));
-        ssize_t actRead = Readline(echoSock, recvBuff, sizeof(recvBuff));
-        if (actRead != strlen(sendBuff))
+        
+        size_t received = receive_data(echoSock);
+        if (received != sent)
             warning("Some data were lost");
-
-        __unused fputs(recvBuff, stdout);
-        __unused fflush(stdout);
     }
 
     // close all opened and connected sockets
@@ -83,4 +79,33 @@ int main(int argc, char** argv)
         Close(sock[s]);
     
     exit(EXIT_SUCCESS);
+}
+
+/* --------------------------------------------------------- */
+/*             S T A T I C   F U N C T I O N S               */
+/* --------------------------------------------------------- */
+
+size_t send_data(int sock)
+{
+    char sendBuff[BUFSIZ] = { 0 };
+    __unused fgets(sendBuff, sizeof(sendBuff), stdin);
+    if ('\n' == sendBuff[0])
+    {
+        __console("Stopping client\n");
+        return 0;
+    }
+
+    __unused Writen(sock, sendBuff, strlen(sendBuff));
+    return strlen(sendBuff);
+}
+
+size_t receive_data(int sock)
+{
+    char recvBuff[BUFSIZ] = { 0 };
+
+    ssize_t actRead = Readline(sock, recvBuff, sizeof(recvBuff));
+    __unused fputs(recvBuff, stdout);
+    __unused fflush(stdout);
+
+    return actRead;
 }
