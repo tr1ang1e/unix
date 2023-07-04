@@ -190,7 +190,7 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
 
 ssize_t Readline(int fd, char* dest, size_t reqCount)
 {   
-    __trace("%s", "Readline(x x)");
+    __trace("Readline(x x reqCount=%zu)", reqCount);
     
     ssize_t actRead;
     ssize_t rc;
@@ -214,6 +214,7 @@ ssize_t Readline(int fd, char* dest, size_t reqCount)
             *dest++ = current;
             if ('\n' == current)
             {
+                __debug("%s", "Line is read");
                 *dest = '\0';
                 goto exit;
             }

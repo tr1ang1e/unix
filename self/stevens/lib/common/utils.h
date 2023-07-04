@@ -36,6 +36,10 @@
 #define MSTR(macro)         #macro          // macro name to string
 #define VSTR(macro)         MSTR(macro)     // macro value to string
 
+// compare values
+#define max(a, b)           ((a > b) ? a : b)
+#define min(a, b)           ((a < b) ? a : b)
+
 // be sure 'va_start' and 'va_end' are called in pair
 #define __va_init(args, prev)   { va_list args; va_start(args, prev);
 #define __va_destroy(args)        va_end(args);  }
@@ -64,6 +68,9 @@
     #define __trace(...)
 #endif
 
+// map RetCode into EXIT_* code
+#define RET_EXIT(retCode)              ((retCode) ? EXIT_FAILURE : EXIT_SUCCESS)
+
 
 /* --------------------------------------------------------- */
 /*                         T Y P E S                         */
@@ -76,6 +83,17 @@ typedef enum ByteOrder
 } ByteOrder;
 
 typedef void (*handle_proc_value)(const char*, void*);
+
+typedef enum RetCode
+{
+    // appropriate for using with bool return type
+    RC_ERROR        =  -1,
+    RC_SUCCESS      =   0,
+
+    // extended return codes
+    RC_SIG_BREAK    = 100,
+    RC_SIG_UNKN
+} RetCode;
 
 typedef struct Coordinates
 {

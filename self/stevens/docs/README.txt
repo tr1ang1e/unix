@@ -11,7 +11,10 @@ to the following rule:
 
     # ------------------------------------------- #
 
-    <comments> 
+    // Comment section.
+    // If the same comment is required for both
+    //   client and server sides, it will be placed
+    //   only on the client side
 */
 
                 * * *

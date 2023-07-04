@@ -1,12 +1,18 @@
 /*
     :: TCP
-    :: Echo client. Write initial data and read modified
-    :: 4.01
+    :: Echo client. Add io multiplexing support
+    :: 4.02
 
     $ ./__c --ip=<ip> --port=<port>
     Options values:
         <ip>    IP, domain name or one of constants: LOOPBACK, HOSTRY, RPI
         <port>  port value known from the server 
+
+    # ------------------------------------------- #
+
+    Application protocol description:
+        - both client and server must know about exact binary data meaning
+        - every meaningful data chunk should be followed by '\n' symbol
 */
 
 
@@ -20,8 +26,9 @@
 /*             S T A T I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
-static size_t send_data(int sock);
-static size_t receive_data(int sock);
+static RetCode send_data(int sock);
+static RetCode receive_data(int sock);
+static RetCode data_exchange(int sock);
 
 
 /* --------------------------------------------------------- */
@@ -31,7 +38,7 @@ static size_t receive_data(int sock);
 int main(int argc, char** argv)
 {
     init(SIDE_CLIENT, argc, argv);
-    int rc = 0;  
+    RetCode rc = 0;  
 
     int sock = Socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in server =
@@ -46,53 +53,113 @@ int main(int argc, char** argv)
 
     __debug("%s", "Connected");
 
-    while (true)
+    rc = data_exchange(sock);
+    switch (rc)
     {
-        size_t sent = send_data(sock);
-        if (0 == sent)
-            break;
-        
-        size_t received = receive_data(sock);
-        if (received != sent)
-            warning("Some data were lost");
-        
-        break;  // send_data currently doesn't have interactivity
+    case RC_SUCCESS: break;
+    case RC_ERROR:
+    case RC_SIG_BREAK:
+        break;
+    default: break;
     }
 
     Close(sock);
-    exit(EXIT_SUCCESS);
+    exit(RET_EXIT(rc));
 }
+
 
 /* --------------------------------------------------------- */
 /*             S T A T I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
-size_t send_data(int sock)
+RetCode send_data(int sock)
 {
-    char sendBuff[BUFSIZ] = { 0 };
-    Coordinates coord = 
+    RetCode rc = RC_SUCCESS;
+
+    /*
+        buff size:
+            - sizeof(Coordinates)       useful data
+            - sizeof(char)              '\n' protocol implementation
+    */
+    char sendBuff[sizeof(Coordinates) + sizeof(char)] = { 0 };
+    char* ptr = sendBuff;
+
+    __unused fgets(sendBuff, sizeof(sendBuff), stdin);
+    if ('\n' == sendBuff[0])
     {
-        .x = -1,
-        .y =  0,
-        .z =  1,
+        rc = RC_SIG_BREAK;
+        return rc;
+    }
+
+    Coordinates coord =
+    {
+        .x = *ptr++ - 48,
+        .y = *ptr++ - 48,
+        .z = *ptr++ - 48
     };
     serialize_coordinates(sendBuff, &coord);
-    __console("Before: %d.%d.%d\n", coord.x, coord.y, coord.z);
+    __unused Writen(sock, sendBuff, sizeof(sendBuff));
 
-    size_t expSent = sizeof(Coordinates) + sizeof(char);
-    size_t actSent = Writen(sock, sendBuff, expSent);
-
-    return actSent;
+    __console("Sent: %d.%d.%d\n", coord.x, coord.y, coord.z);
+    return rc;
 }
 
-size_t receive_data(int sock)
+RetCode receive_data(int sock)
 {
-    char recvBuff[BUFSIZ] = { 0 };
-    Coordinates coord = { 0 };
-
+    RetCode rc = RC_SUCCESS;
+    
+    /*
+        buff size:
+            - sizeof(Coordinates)       useful data
+            - sizeof(char)              '\n' protocol implementation
+            - sizeof(char)              for Readline to add '\000'
+    */
+    char recvBuff[sizeof(Coordinates) + sizeof(char) + sizeof(char)] = { 0 };
     ssize_t actRead = Readline(sock, recvBuff, sizeof(recvBuff));
+    
+    Coordinates coord;
     deserialize_coordinates(&coord, recvBuff);
+    __console("Received: %d.%d.%d\n", coord.x, coord.y, coord.z);  
 
-    __console("After: %d.%d.%d\n", coord.x, coord.y, coord.z);
-    return actRead;
+    return rc;
+}
+
+RetCode data_exchange(int sock)
+{
+    RetCode rc = RC_SUCCESS;
+
+    // select() required arguments
+    int inputFd = fileno(stdin);
+    int nfds = max(inputFd, sock) + 1;
+    fd_set readSet; FD_ZERO(&readSet);
+
+    while (true)
+    {
+        // restore fd bits
+        FD_SET(inputFd, &readSet);
+        FD_SET(sock, &readSet);
+
+        rc = select(nfds, &readSet, NULL, NULL, NULL);
+        if (RC_ERROR == rc)
+            break;
+
+        // server data to be handled is ready
+        if (FD_ISSET(sock, &readSet))
+        {
+            rc = receive_data(sock);
+        }
+
+        // user data to be sent is ready
+        if (FD_ISSET(inputFd, &readSet))
+        {
+            rc = send_data(sock);
+            if (RC_SIG_BREAK == rc)
+            {
+                rc = RC_SUCCESS;
+                break;
+            }
+        }
+    }
+
+    return rc;
 }
