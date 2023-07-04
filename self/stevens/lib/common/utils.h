@@ -52,6 +52,9 @@
 #define RED 	"\x1B[31m"
 #define YELL	"\x1B[38;5;227m"
 
+// map RetCode into EXIT_* code
+#define RET_EXIT(retCode)              ((retCode) ? EXIT_FAILURE : EXIT_SUCCESS)
+
 /* log levels */
 
 #ifdef DEBUG
@@ -68,8 +71,6 @@
     #define __trace(...)
 #endif
 
-// map RetCode into EXIT_* code
-#define RET_EXIT(retCode)              ((retCode) ? EXIT_FAILURE : EXIT_SUCCESS)
 
 
 /* --------------------------------------------------------- */

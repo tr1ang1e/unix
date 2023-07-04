@@ -6,6 +6,13 @@
 
 
 /* --------------------------------------------------------- */
+/*                        G L O B A L                        */
+/* --------------------------------------------------------- */
+
+static bool ReadnbufBufferEmpty = true;
+
+
+/* --------------------------------------------------------- */
 /*             P U B L I C   F U N C T I O N S               */
 /* --------------------------------------------------------- */
 
@@ -98,7 +105,7 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
 {
     /*
         Function behaves in a fololowing way:
-            1. try to sent to caller all requested data from buffer
+            1. try to send to caller all requested data from buffer
             2. if data in buffer is not enough:
                 - sent to caller available data
                 - try to read new data from fd
@@ -185,6 +192,13 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
         }
     }
 
+    /*
+        the way to decide if buffer is empty is to test 
+        if begin iterator equals to end one. It migth be
+        done once before return
+    */
+    ReadnbufBufferEmpty = (begin == end) ? true : false;
+
     return actCount;
 }
 
@@ -241,4 +255,9 @@ ssize_t Readline(int fd, char* dest, size_t reqCount)
 exit:
 
     return actRead;
+}
+
+bool ReadnbufEmpty()
+{
+    return ReadnbufBufferEmpty;
 }

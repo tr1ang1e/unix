@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo client. Add io multiplexing support
-    :: 4.02
+    :: Echo client. Add shutdown support
+    :: 4.03
 
     $ ./__c --ip=<ip> --port=<port>
     Options values:
@@ -87,6 +87,7 @@ RetCode send_data(int sock)
     __unused fgets(sendBuff, sizeof(sendBuff), stdin);
     if ('\n' == sendBuff[0])
     {
+        Shutdown(sock, SHUT_WR);
         rc = RC_SIG_BREAK;
         return rc;
     }
@@ -116,10 +117,24 @@ RetCode receive_data(int sock)
     */
     char recvBuff[sizeof(Coordinates) + sizeof(char) + sizeof(char)] = { 0 };
     ssize_t actRead = Readline(sock, recvBuff, sizeof(recvBuff));
+    switch (actRead)
+    {
+    case -1:    // error
+        break;             
+
+    case  0:    // EOF
+        rc = RC_SIG_BREAK;
+        break;
+
+    default:    // success
+    {
+        Coordinates coord;
+        deserialize_coordinates(&coord, recvBuff);
+        __console("Received: %d.%d.%d\n", coord.x, coord.y, coord.z);  
+    }
+    break;             
+    }
     
-    Coordinates coord;
-    deserialize_coordinates(&coord, recvBuff);
-    __console("Received: %d.%d.%d\n", coord.x, coord.y, coord.z);  
 
     return rc;
 }
@@ -130,14 +145,15 @@ RetCode data_exchange(int sock)
 
     // select() required arguments
     int inputFd = fileno(stdin);
+    bool inputEof = false;
     int nfds = max(inputFd, sock) + 1;
     fd_set readSet; FD_ZERO(&readSet);
 
     while (true)
     {
         // restore fd bits
-        FD_SET(inputFd, &readSet);
-        FD_SET(sock, &readSet);
+        if (ReadnbufEmpty())   FD_SET(sock, &readSet);
+        if (!inputEof)         FD_SET(inputFd, &readSet);
 
         rc = select(nfds, &readSet, NULL, NULL, NULL);
         if (RC_ERROR == rc)
@@ -147,6 +163,12 @@ RetCode data_exchange(int sock)
         if (FD_ISSET(sock, &readSet))
         {
             rc = receive_data(sock);
+            if ((RC_SIG_BREAK == rc) && inputEof)
+            {
+                // get FIN from server
+                rc = RC_SUCCESS;
+                break;
+            }
         }
 
         // user data to be sent is ready
@@ -155,8 +177,13 @@ RetCode data_exchange(int sock)
             rc = send_data(sock);
             if (RC_SIG_BREAK == rc)
             {
+                // avoid using input fd in select
+                FD_CLR(inputFd, &readSet);
+                inputEof = true;
+
+                // restore rc defaul value
                 rc = RC_SUCCESS;
-                break;
+                continue;
             }
         }
     }

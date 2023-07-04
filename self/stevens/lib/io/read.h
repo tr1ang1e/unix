@@ -19,5 +19,7 @@ ssize_t Readntime(int fd, char* dest, size_t reqCount, uint64_t maxTime);   // r
 ssize_t Readnbuf(int fd, char* dest, size_t reqCount);                      // read reqCount or less bytes, buffered
 ssize_t Readline(int fd, char* dest, size_t reqCount);                      // read reqCount or less bytes untill new line symbol is met
 
+bool ReadnbufEmpty();                                                       // if Readnbuf buffer is empty or not                           
+
 
 #endif // READ_H

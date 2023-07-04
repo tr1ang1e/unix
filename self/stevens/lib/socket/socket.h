@@ -36,6 +36,7 @@ void Connect(int sockfd, struct sockaddr* addr, socklen_t addrlen);
 int Accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen);
 void Listen(int sockfd);
 void Close(int sockfd);
+void Shutdown(int sockfd, int how);
 
 // utility
 void Sock_pton(int af, const char* restrict src, void* restrict dst);

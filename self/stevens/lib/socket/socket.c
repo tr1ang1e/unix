@@ -78,6 +78,15 @@ void Close(int sockfd)
         error("close() listen socket error");
 }
 
+void Shutdown(int sockfd, int how)
+{
+    __trace("Shutdown(sockfd=%d how=%d)", sockfd, how);
+
+    int rc = shutdown(sockfd, how);
+    if (-1 == rc)
+        error("shutdown() error");
+}
+
 /* utility */
 
 void Sock_pton(int af, const char* restrict src, void* restrict dst)
