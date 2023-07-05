@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo client. Add shutdown support
-    :: 4.03
+    :: Echo client. Replace select() with poll()
+    :: 4.04
 
     $ ./__c --ip=<ip> --port=<port>
     Options values:
@@ -135,7 +135,6 @@ RetCode receive_data(int sock)
     break;             
     }
     
-
     return rc;
 }
 
@@ -143,48 +142,57 @@ RetCode data_exchange(int sock)
 {
     RetCode rc = RC_SUCCESS;
 
-    // select() required arguments
-    int inputFd = fileno(stdin);
-    bool inputEof = false;
-    int nfds = max(inputFd, sock) + 1;
-    fd_set readSet; FD_ZERO(&readSet);
+    // poll() required arguments
+    struct pollfd fds[] =
+    {
+        [0] = {  .fd = fileno(stdin),   .events = POLLIN  },
+        [1] = {  .fd = sock,            .events = POLLIN  }
+    };
+    size_t nfds = sizeof(fds) / sizeof(struct pollfd);
+    int timeout = -1;   // infinite
+    int eventsNumber;
+
+    // for readability purposes
+    struct pollfd* inputPoll = &fds[0];
+    struct pollfd* sockPoll = &fds[1];
 
     while (true)
     {
-        // restore fd bits
-        if (ReadnbufEmpty())   FD_SET(sock, &readSet);
-        if (!inputEof)         FD_SET(inputFd, &readSet);
-
-        rc = select(nfds, &readSet, NULL, NULL, NULL);
-        if (RC_ERROR == rc)
-            break;
+        eventsNumber = poll(fds, nfds, timeout);
+        if (RC_ERROR == eventsNumber)   break;
+        else if (0 == eventsNumber)   continue;
 
         // server data to be handled is ready
-        if (FD_ISSET(sock, &readSet))
+        if (sockPoll->revents & POLLIN)
         {
             rc = receive_data(sock);
-            if ((RC_SIG_BREAK == rc) && inputEof)
+            if (RC_SIG_BREAK == rc)
             {
                 // get FIN from server
                 rc = RC_SUCCESS;
                 break;
             }
+
+            // reset revent bit
+            sockPoll->revents &= ~POLLIN;
         }
 
         // user data to be sent is ready
-        if (FD_ISSET(inputFd, &readSet))
+        if (inputPoll->revents & POLLIN)
         {
             rc = send_data(sock);
             if (RC_SIG_BREAK == rc)
             {
-                // avoid using input fd in select
-                FD_CLR(inputFd, &readSet);
-                inputEof = true;
+                // no more input = fd not needed
+                inputPoll->fd = -1;
 
                 // restore rc defaul value
                 rc = RC_SUCCESS;
                 continue;
             }
+
+            // reset revent bit
+            inputPoll->revents &= ~POLLIN;
         }
     }
 
