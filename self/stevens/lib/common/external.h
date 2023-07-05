@@ -14,6 +14,7 @@
 */
 
 #include <arpa/inet.h>
+#include <dirent.h>
 #include <errno.h>
 #include <getopt.h>
 #include <netdb.h>

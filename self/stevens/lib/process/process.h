@@ -29,8 +29,12 @@ extern struct sigaction __sigIgnorance;
 /*                    F U N C T I O N S                      */
 /* --------------------------------------------------------- */
 
+// wrappers
 pid_t Fork();
 SIGHANDLER Sigaction(int signum, SIGHANDLER sigHandler);
+
+// helpers
+int get_max_proc_fd();
 
 
 #endif // PROCESS_H

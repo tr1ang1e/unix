@@ -54,3 +54,39 @@ SIGHANDLER Sigaction(int signum, SIGHANDLER sigHandler)
 
 	return oldact.sa_handler;
 }
+
+int get_max_proc_fd()
+{
+	/* 
+		notice, that result might or might not
+		include descriptor created by opendir()
+		and removed by closedir() right before
+		function returns
+	*/
+
+	int result = -1;
+	int temp;
+	struct dirent* dirEntry = NULL;
+
+	char dirName[32] = { 0 };
+	__unused snprintf(dirName, sizeof(dirName), "/proc/%i/fd/", getpid());
+
+	DIR *dir = opendir(dirName);
+	while (true) 
+	{
+		dirEntry = readdir(dir);
+		if (NULL == dirEntry)
+			break;
+
+		// skip current and parent dirs
+		if (dirEntry->d_name[0] == '.')
+			continue;
+
+		temp = atoi(dirEntry->d_name);
+		result = (result > temp) ? result : temp;
+	};
+
+	__unused closedir(dir);
+
+	return result;
+}

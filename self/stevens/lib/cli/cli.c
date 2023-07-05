@@ -163,16 +163,16 @@ void print_start_state()
     case SIDE_CLIENT:
     {
         __console("  CLIENT ...........    \n");
+        __console("  PID = %d              \n", getpid());
         __console("  Server to connect:    \n");
         __console("    address = %s:%d     \n", __ip, __port);          
-        
     } break;
 
     case SIDE_SERVER:
     {
         __console("  SERVER ...........    \n");
+        __console("  PID = %d              \n", getpid());
         __console("  Listen port = %d      \n", __port);
-
     } break;
 
     default: 
@@ -241,6 +241,11 @@ void handle_sigchld(int signum)
         pid = waitpid(-1, &waitStatus, WNOHANG);
         if (0 >= pid)
             break;
+
+        // handle child exit status
+        int rc = -1;
+        if (WIFEXITED(waitStatus))
+            rc = WEXITSTATUS(waitStatus);
     }
 
     return;
