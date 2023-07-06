@@ -254,6 +254,29 @@ TCP TIMERS
 
 * * *
 
+SOCKET ERRORS 
+
+    EPIPE       32 = "Broken pipe"            
+                Reproduce:
+                    - get FIN 
+                    - send data = get RST
+                    - send data again
+                Comment:
+                    - SIGPIPE signal
+
+    ECONNRESET  104 = Connection reset by peer
+                Reproduce:
+                    - send data
+                    - get RST. It might happend when partner 
+                               read not full data and wants 
+                               to close connection. Not FIN but
+                               RST will be sent in this case
+                    - ...
+                Result: 
+                    To imitate sending RST: https://stackoverflow.com/questions/3757289/when-is-tcp-option-so-linger-0-required
+
+* * *
+
 List of terms to be studied
 
     RTT (round-trip delay) = <...>

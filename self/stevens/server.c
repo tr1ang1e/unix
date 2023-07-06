@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo server. Add multiplexing support
-    :: 4.02
+    :: Echo server. Replace select() with poll()
+    :: 4.03
 
     $ ./__s --port=<port>
 
@@ -29,6 +29,8 @@
 
 #define DEBUG
 #define TRACE
+#define INFO
+
 
 #include "lib.h"
 
@@ -65,28 +67,29 @@ int main(int argc, char** argv)
         strore all connected clients to be
         able to iterate over the array and
         perform any operations, particulary
-        reading after select() returns
+        reading after poll() returns
 
-        -1 value means no client stored in
-        this array element
+        struct pollfd::fd value -1 means no 
+        client stored in this array element
     */
 
-    int clients[FD_SETSIZE];
-    int client;  // helper
-    int maxClientIdx = -1;
-    for (client = 0; client < FD_SETSIZE; ++client)
-        clients[client] = -1;
+    struct pollfd clients[OPEN_MAX];
+    size_t clientsMax = sizeof(clients) / sizeof(struct pollfd);
+    clients[0].fd = lsock;
+    clients[0].events = POLLIN;
+    for (size_t i = 1; i < clientsMax; ++i)
+        clients[i].fd = -1;
 
-    // select() required arguments
-    fd_set readSet, allSet;
-    FD_ZERO(&allSet);
-    FD_SET(lsock, &allSet);
-    int nfds = lsock + 1;
+    // helpers
+    int client;
+    int maxClientIdx = -1;
+    const int timeout = -1;
+    int nfds = clientsMax;
+    struct pollfd* lsockPoll = &clients[0];
 
     while (true)
     {
-        readSet = allSet;
-        int ready = select(nfds, &readSet, NULL, NULL, NULL);
+        int ready = poll(clients, nfds, timeout);
         if (RC_ERROR == ready)
             break;
         
@@ -95,22 +98,22 @@ int main(int argc, char** argv)
             requires changing data related to the clients
         */
 
-        for (client = 0; client <= maxClientIdx; ++client)
+        struct pollfd* csockPoll;
+        for (client = 1; client <= maxClientIdx; ++client)
         {    
-            int csock = clients[client];
-            if (-1 == csock)
+            csockPoll = &clients[client];
+            if (-1 == csockPoll->fd)
                 continue;
 
-            if (FD_ISSET(csock, &readSet))
+            if (csockPoll->revents & (POLLIN | POLLERR))
             {
-                rc = handle_client(csock);
+                rc = handle_client(csockPoll->fd);
                 switch (rc)
                 {
                 case RC_SIG_BREAK:      // client has closed connection
                 {
-                    Close(csock);
-                    FD_CLR(csock, &allSet);
-                    clients[client] = -1;
+                    Close(csockPoll->fd);
+                    csockPoll->fd = -1;
                     break;
                 }
 
@@ -141,24 +144,22 @@ int main(int argc, char** argv)
                 - update all fd set
         */
 
-        if (FD_ISSET(lsock, &readSet))
+        if (lsockPoll->revents & POLLIN)
         {
             int csock = Accept(lsock, NULL, NULL);
             
             // save new client descriptor
-            for (client = 0; client < FD_SETSIZE; ++client)
+            for (client = 1; client < clientsMax; ++client)
             {
-                if (-1 == clients[client])
+                if (-1 == clients[client].fd)
                 {
-                    clients[client] = csock;
+                    clients[client].fd = csock;
+                    clients[client].events = POLLIN;
                     break;
                 }
             }
-            if (FD_SETSIZE == client) error("Too many clients");
-            
-            // update select() required data
-            FD_SET(csock, &allSet);
-            if (csock >= nfds)  nfds = csock + 1;
+
+            if (client == clientsMax) error("Too many clients");
             if (client > maxClientIdx) maxClientIdx = client;
         }
     }

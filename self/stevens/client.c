@@ -18,6 +18,7 @@
 
 #define DEBUG
 #define TRACE
+#define INFO
 
 #include "lib.h"
 
@@ -163,7 +164,7 @@ RetCode data_exchange(int sock)
         else if (0 == eventsNumber)   continue;
 
         // server data to be handled is ready
-        if (sockPoll->revents & POLLIN)
+        if (sockPoll->revents & (POLLIN | POLLERR))
         {
             rc = receive_data(sock);
             if (RC_SIG_BREAK == rc)

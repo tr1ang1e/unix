@@ -22,6 +22,8 @@ ssize_t Writen(int fd, const char* src, size_t count)
         
         if (currentWritten <= 0)
         {
+            __info("write error: %d = %s", errno, strerror(errno));
+            
             if (EINTR == errno)
             {
                 // interrupt before any data have been read

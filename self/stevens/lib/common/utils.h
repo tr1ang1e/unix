@@ -30,7 +30,8 @@
 #define NS_PER_MS		    1000000U
 
 // io constants
-#define CONSOLE_LINE        100
+#define CONSOLE_LINE        100             // must not contain 'U' like '100U'
+#define OPEN_MAX            1024U
 
 // get string 
 #define MSTR(macro)         #macro          // macro name to string
@@ -71,6 +72,12 @@
     #define __trace(...)
 #endif
 
+#ifdef INFO
+    #define __info_color(fmt, ...)     printf(YELL "[  INFO ]   " fmt ORIG "\n", __VA_ARGS__)
+    #define __info(...)                __info_color( __VA_ARGS__)
+#else
+    #define __info(...)
+#endif
 
 
 /* --------------------------------------------------------- */

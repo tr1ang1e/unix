@@ -29,6 +29,8 @@ ssize_t Readn(int fd, char* dest, size_t reqCount)
 
         if (currRead < 0)
         {
+            __info("read error: %d = %s", errno, strerror(errno));
+            
             if (EINTR == errno)
             {
                 // interrupt before any data have been read
@@ -36,7 +38,7 @@ ssize_t Readn(int fd, char* dest, size_t reqCount)
             }
             else
             {
-                // stop, return data were successfully read
+                // stop, return data wich were successfully read if any
                 actRead = (actRead != 0) ? actRead : -1;
                 break;
             }
@@ -151,20 +153,25 @@ ssize_t Readnbuf(int fd, char* dest, size_t reqCount)
             buffer as if it doesn't store any data
         */
 
-        begin = buffer;
-        ssize_t availCount = read(fd, buffer, sizeof(buffer));
-        __debug("read() result=%ld", availCount);
+        ssize_t availCount;
+        do
+        {
+            begin = buffer;
+            availCount = read(fd, buffer, sizeof(buffer));
+            __debug("read() result=%ld", availCount);
+
+        } while((-1 == availCount) && (EINTR == errno));  // retry if interrupted by signal
 
         switch (availCount)
         {
         case -1:
-        {
+        {            
             /*
                 error occur while reading, return:
                     - error (-1) if no data were already sent to caller
                     - number of bytes were already sent to caller if any
             */
-            __debug("read() error: %s", strerror(errno));
+            __info("read error: %d = %s", errno, strerror(errno));
 
             actCount = (actCount != 0) ? actCount : -1;     
             end = buffer;
