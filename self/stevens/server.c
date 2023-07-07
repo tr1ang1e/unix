@@ -1,7 +1,7 @@
 /*
     :: TCP
-    :: Echo server. Replace select() with poll()
-    :: 4.03
+    :: Echo server. Test *rlimit() functions
+    :: 4.04
 
     $ ./__s --port=<port>
 
@@ -50,6 +50,21 @@ int main(int argc, char** argv)
 {
     init(SIDE_SERVER, argc, argv);
     RetCode rc = 0;
+
+    /* maximize allowed number of open files */
+
+    struct rlimit lim;
+    rc = getrlimit(RLIMIT_NOFILE, &lim);
+    if (RC_ERROR != rc)
+    {
+        __debug("Change RLIMIT_NOFILE: %d to %d", lim.rlim_cur, lim.rlim_max);
+        lim.rlim_cur = lim.rlim_max;
+        rc = setrlimit(RLIMIT_NOFILE, &lim);
+    }
+    if (RC_ERROR == rc) error("Changing RLIMIT_NOFILE error");
+
+    /* start working with sockets */
+
     int lsock = Socket(AF_INET, SOCK_STREAM, 0);
 
     struct sockaddr_in server =

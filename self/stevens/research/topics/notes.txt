@@ -277,7 +277,9 @@ SOCKET ERRORS
                                RST will be sent in this case
                     - send data again
                 Comment: 
-                    To imitate sending RST: https://stackoverflow.com/questions/3757289/when-is-tcp-option-so-linger-0-required
+                    To imitate sending RST on socket:
+                    1. setsockopt for SO_LINGER { .onoff=1, linger=0 }
+                    2. close socket
 
 * * *
 
