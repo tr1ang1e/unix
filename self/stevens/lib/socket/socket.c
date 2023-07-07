@@ -126,44 +126,6 @@ char* Sock_getsidename(int sockfd, GETSIDENAME callback, bool portRequired)
     return result;
 }
 
-in_port_t Sock_get_port(const struct sockaddr* addr)
-{
-    in_port_t port = 0;
-
-    switch (addr->sa_family)
-    {
-    case AF_INET:
-        port = ((struct sockaddr_in*)addr)->sin_port;
-        break;
-
-    case AF_INET6:
-        port = ((struct sockaddr_in6*)addr)->sin6_port;
-        break;
-
-    default:
-        break;
-    }
-
-    return port;
-}
-
-int Sock_bind_wild(int sockfd, int af)
-{
-	int	port = sock_bind_wild(sockfd, af);
-    if (port < 0)
-		error("sock_bind_wild() error");
-	return port;
-}
-
-int Sock_get_backlog()
-{
-    int requested = atoi(Getenv("LISTENQ", VSTR(LISTENQ)));
-    int maxAllowed = 0;
-    get_proc_value("/proc/sys/net/core/somaxconn", single_token_to_num, (void*)&maxAllowed);
-
-    return (requested > maxAllowed) ? maxAllowed : requested;
-}
-
 bool Sock_getaddrinfo(int af, const char* asciiName, char* ipRepr)
 {
 	/*
@@ -233,6 +195,74 @@ bool Sock_getaddrinfo(int af, const char* asciiName, char* ipRepr)
 }
 
 /* helper */
+
+int Sock_get_backlog()
+{
+    __trace("%s", "Socket_get_backlog()");
+    
+    int requested = atoi(Getenv("LISTENQ", VSTR(LISTENQ)));
+    int maxAllowed = 0;
+    get_proc_value("/proc/sys/net/core/somaxconn", single_token_to_num, (void*)&maxAllowed);
+
+    return (requested > maxAllowed) ? maxAllowed : requested;
+}
+
+int Sock_send_rst(int sockfd)
+{
+    __trace("Sock_send_rst(sokfd=%d)", sockfd);
+
+    int rc = 0;
+
+    const struct linger sockLinger = 
+    {
+        .l_onoff = 1,
+        .l_linger = 0
+    };
+
+    /* 
+        combination for sending RST
+        - enable linger with 0 time
+        - close socket
+    */
+    
+    rc = setsockopt(sockfd, SOL_SOCKET, SO_LINGER, &sockLinger, sizeof(sockLinger));
+    if (0 == rc) 
+        rc = close(sockfd);
+    
+    return rc;
+}
+
+
+/* unused */
+
+in_port_t Sock_get_port(const struct sockaddr* addr)
+{
+    in_port_t port = 0;
+
+    switch (addr->sa_family)
+    {
+    case AF_INET:
+        port = ((struct sockaddr_in*)addr)->sin_port;
+        break;
+
+    case AF_INET6:
+        port = ((struct sockaddr_in6*)addr)->sin6_port;
+        break;
+
+    default:
+        break;
+    }
+
+    return port;
+}
+
+int Sock_bind_wild(int sockfd, int af)
+{
+	int	port = sock_bind_wild(sockfd, af);
+    if (port < 0)
+		error("sock_bind_wild() error");
+	return port;
+}
 
 bool Sock_cmp_addr(const struct sockaddr* addr1, const struct sockaddr* addr2)
 {

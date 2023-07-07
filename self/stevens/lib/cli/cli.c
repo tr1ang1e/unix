@@ -206,7 +206,6 @@ const char* resolve_server_ip(const char* optarg)
     return NULL;
 }
 
-
 /* signals handling */
 
 void register_sighandlers(SideType side)

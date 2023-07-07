@@ -25,8 +25,8 @@ UTILITIES
 TCP/IP MODEL
 
     [A] = APPLICATION   <...>
-    [T] = TRANSPORT     TCP, UDP, <...>         segment, datagram
-    [I] = INTERNET      IPv4/6, <...>           packet
+    [T] = TRANSPORT     TCP (segment), UDP (datagram), SCTP
+    [I] = INTERNET      IPv4/6 (packet), ICMPv4/6, IGMP, 
     [L] = LINK          <...>                   unit
 
 MODEL PARAMETERS
@@ -36,13 +36,9 @@ MODEL PARAMETERS
     MTU (maximum transmission unit)
     
         - maximum size of unit which can be processed in a single transaction
+        - get MTU for host interface: `ip a | grep mtu`
         - PMTU = path MTU = MTU for entire network path between two peers
-        - get MTU:
-            for host interface: `ip a | grep mtu`
-            for entire path: PMTU Discovery
-
-        <how host knows MTU of other host?>
-        https://networkengineering.stackexchange.com/a/76462
+        - PMTU discovery is done on INTERNET level
 
     --- INTERNET ----
 
@@ -60,7 +56,15 @@ MODEL PARAMETERS
         minimum IP FRAGMENT size that each node must be able 
         to handle without further fragmentation. Dafaults:
             IPv4 =   68 octets   [RFC 0791]  - actual value usually is greater
-            IPv6 = 1280 octets   [RFC 2460]  - actual value usually is the same     
+            IPv6 = 1280 octets   [RFC 2460]  - actual value usually is the same    
+
+    PMTU DISCOVERY
+
+        1. host sends data of N1 size
+        2. 
+            A. if PMTU >= N1, PMTU is found (or at least enough)
+            B. if PMTU <  N1, hist gets ICMP "Fragmentation required" massage
+               change data size to N2 < N1 and goes to step 1. again
 
     --- TRANSPORT ---
 
@@ -271,8 +275,8 @@ SOCKET ERRORS
                                read not full data and wants 
                                to close connection. Not FIN but
                                RST will be sent in this case
-                    - ...
-                Result: 
+                    - send data again
+                Comment: 
                     To imitate sending RST: https://stackoverflow.com/questions/3757289/when-is-tcp-option-so-linger-0-required
 
 * * *
@@ -283,10 +287,10 @@ List of terms to be studied
 
     TCP delayed acknowledgment = <...>
 
-    MSL (minimum segment lifetime) = <...>
+    MSL (maximum segment lifetime) = <...>
 
 List of questions to be answered:
-    -        use socket(..., ... | SOCK_NONBLOCK, ...) with 'poll' on 'connect'
+    -        use socket(..., ... | SOCK_NONBLOCK, ...) with 'poll' or 'connect'
     2.4      how to set connection/response timeout for TCP + how TCP predicts Round-trip time (RTT)
     2.6      how TRANSPORT layer (e.g. TCP) parameters connected with APPLICATION layer experience?
     -        local vs. external IP in context of bind() function and 'ifconfig' utility

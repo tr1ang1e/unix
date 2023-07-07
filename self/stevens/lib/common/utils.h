@@ -110,6 +110,7 @@ typedef struct Coordinates
     int32_t z;
 } Coordinates;
 
+
 /* --------------------------------------------------------- */
 /*                    F U N C T I O N S                      */
 /* --------------------------------------------------------- */
@@ -124,5 +125,6 @@ void single_token_to_num(const char* token, void* result);                  // c
 
 void serialize_coordinates(void* dest, const Coordinates* src);
 void deserialize_coordinates(Coordinates* dest, const void* src);
+
 
 #endif // UTILS_H

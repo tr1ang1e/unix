@@ -15,8 +15,15 @@
 /*                   H E L P   M A C R O S                   */
 /* --------------------------------------------------------- */
 
-#define INET_COMMON_ADDRSTRLEN   128        // actually 108 [man 7 unix] but rounded to the power of 2
+/*
+    for IPv4/6 see [man 3 inet_ntop] macros
+    the actual biggest is 108 [man 7 unix] 
+    result common is unix but rounded to the power of 2
+*/
+#define INET_COMMON_ADDRSTRLEN   128   
+     
 #define IP_PORT_DELIM   ":"                 // just for string representation when passing to output
+
 
 /* --------------------------------------------------------- */
 /*                         T Y P E S                         */
@@ -42,12 +49,15 @@ void Shutdown(int sockfd, int how);
 void Sock_pton(int af, const char* restrict src, void* restrict dst);
 char* Sock_ntop(const struct sockaddr* addr, bool portRequired);
 char* Sock_getsidename(int sockfd, GETSIDENAME callback, bool portRequired);
-in_port_t Sock_get_port(const struct sockaddr* addr);
-int Sock_bind_wild(int sockfd, int af);
-int Sock_get_backlog();
 bool Sock_getaddrinfo(int af, const char* asciiName, char* ipRepr);
 
 // helper
+int Sock_get_backlog();
+int Sock_send_rst(int sock);
+
+// unused
+int Sock_bind_wild(int sockfd, int af);
+in_port_t Sock_get_port(const struct sockaddr* addr);
 bool Sock_cmp_addr(const struct sockaddr* addr1, const struct sockaddr* addr2);
 bool Sock_cmp_port(const struct sockaddr* addr1, const struct sockaddr* addr2);
 void Sock_set_addr(struct sockaddr* addr, const void* src);

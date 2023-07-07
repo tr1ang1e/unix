@@ -1,5 +1,7 @@
 #define DEBUG
 #define TRACE
+#define INFO
+
 
 #include "lib.h"
 
@@ -44,8 +46,10 @@ int main(int argc, char** argv)
         {
             Close(lsock);
       
-            handle_client(csock);
-            Close(csock);
+            Sock_send_rst(csock);
+
+            // handle_client(csock);
+            // Close(csock);
 
             exit(EXIT_SUCCESS);
         } 

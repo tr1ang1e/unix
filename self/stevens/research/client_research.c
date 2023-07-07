@@ -1,5 +1,7 @@
 #define DEBUG
 #define TRACE
+#define INFO
+
 
 #include "lib.h"
 
@@ -54,6 +56,7 @@ int main(int argc, char** argv)
     Close(sock);
     exit(EXIT_SUCCESS);
 }
+
 
 /* --------------------------------------------------------- */
 /*             S T A T I C   F U N C T I O N S               */
