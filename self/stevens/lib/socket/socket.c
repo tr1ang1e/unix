@@ -232,6 +232,47 @@ int Sock_send_rst(int sockfd)
     return rc;
 }
 
+int Sock_set_lowat(int sockfd, int sndLowat, int rcvLowat)
+{
+    __trace("Sock_set_lowat(sokfd=%d sndLowat=%d rcvLowat=%d)", sockfd, sndLowat, rcvLowat);
+    
+    int rc = 0;
+
+    /*
+        see [man 7 socket] to read about the 
+        nuances of SO_SNDLOWAT and SO_RCVLOWAT
+
+        function actually doesn't any job and
+        implemented only for test purposes
+    */
+
+    socklen_t optSize = sizeof(int);
+
+    if (-1 != sndLowat)
+    {
+        int actSndLowat;
+        rc = getsockopt(sockfd, SOL_SOCKET, SO_SNDLOWAT, &actSndLowat, &optSize);
+        if (RC_ERROR != rc)
+            __debug("SO_SNDLOWAT can't be changed. Actual value is %d", actSndLowat);   
+    }
+
+    if (-1 != rcvLowat)
+    {
+        int actRcvLowat = 1;
+        rc = getsockopt(sockfd, SOL_SOCKET, SO_RCVLOWAT, &actRcvLowat, &optSize);
+        if (RC_ERROR != rc)
+            __debug("SO_RCVLOWAT actual value is %d", actRcvLowat);
+
+        /* just for testing setsockopt() is succeeded */
+
+        int newRcvLowat = actRcvLowat;           
+        rc = setsockopt(sockfd, SOL_SOCKET, SO_RCVLOWAT, &newRcvLowat, optSize);  
+        if (RC_ERROR != rc)
+            __debug("SO_RCVLOWAT actual value changed to %d", newRcvLowat); 
+    }
+
+    return rc;
+}
 
 /* unused */
 

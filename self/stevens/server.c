@@ -79,7 +79,7 @@ int main(int argc, char** argv)
     Listen(lsock);
 
     /*
-        strore all connected clients to be
+        store all connected clients to be
         able to iterate over the array and
         perform any operations, particulary
         reading after poll() returns

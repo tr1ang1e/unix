@@ -21,6 +21,13 @@ int main(int argc, char** argv)
     int rc = 0;  
 
     int sock = Socket(AF_INET, SOCK_STREAM, 0);
+
+    /*
+        test SO_SNDLOWAT and SO_RCVLOWAT
+        call wikk have no any effect 
+    */ 
+    __unused Sock_set_lowat(sock, 1, 1);
+
     struct sockaddr_in server =
     {
         .sin_family = AF_INET,

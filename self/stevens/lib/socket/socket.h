@@ -54,6 +54,7 @@ bool Sock_getaddrinfo(int af, const char* asciiName, char* ipRepr);
 // helper
 int Sock_get_backlog();
 int Sock_send_rst(int sock);
+int Sock_set_lowat(int sockfd, int sndLowat, int rcvLowat);
 
 // unused
 int Sock_bind_wild(int sockfd, int af);
