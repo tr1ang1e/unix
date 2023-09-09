@@ -22,29 +22,8 @@
 
 #define PERROR_EXIT()        { perror("fatal error"); goto exit_failure; }
 
-#define FTOK_MAIN_PATNAME    __FILE__
-#define FTOK_MAIN_PROJ_ID    'M'
-
 #define LOOP_SLEEP_S          0              // 0 sec
 #define LOOP_SLEEP_NS         100000000      // 0.1 sec
-
-#define MSGS_COUNT            40
-
-
-/* --------------------------------------------------------- */
-/*                         T Y P E S                         */
-/* --------------------------------------------------------- */
-
-typedef struct 
-{
-    int value;
-} messageText;
-
-typedef struct 
-{
-    long mtype;
-    messageText mtext;
-} queueMessage;
 
 
 /* --------------------------------------------------------- */
@@ -75,7 +54,7 @@ int main()
 { 
     int rc;
     
-    /* avoid race condition in slavchilde process */
+    /* avoid race condition in child process */
 
     pid_t ppid = getpid();
     printf("Parent process PID: %d\n", ppid);

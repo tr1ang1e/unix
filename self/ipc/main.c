@@ -22,29 +22,10 @@
 
 #define PERROR_EXIT()        { perror("fatal error"); goto exit_failure; }
 
-#define FTOK_MAIN_PATNAME    __FILE__
-#define FTOK_MAIN_PROJ_ID    'M'
-
-#define LOOP_SLEEP_S          0              // 0 sec
+#define LOOP_SLEEP_S          1              // 0 sec
 #define LOOP_SLEEP_NS         100000000      // 0.1 sec
 
-#define MSGS_COUNT            40
-
-
-/* --------------------------------------------------------- */
-/*                         T Y P E S                         */
-/* --------------------------------------------------------- */
-
-typedef struct 
-{
-    int value;
-} messageText;
-
-typedef struct 
-{
-    long mtype;
-    messageText mtext;
-} queueMessage;
+#define ALRM_INTERVAL         5
 
 
 /* --------------------------------------------------------- */
@@ -57,6 +38,8 @@ struct timespec sleepFor =
     .tv_nsec = 0
 };
 
+sig_atomic_t alarmFlag;
+
 
 /* --------------------------------------------------------- */
 /*                    P R O T O T Y P E S                    */
@@ -64,6 +47,7 @@ struct timespec sleepFor =
 
 static void child_main(pid_t ppid);
 static void child_sigint_handler(int signum);
+static void child_sigalrm_handler(int signum);
 static void parent_sigchld_handler(int signum);
 
 
@@ -75,7 +59,7 @@ int main()
 { 
     int rc;
     
-    /* avoid race condition in slavchilde process */
+    /* avoid race condition in chiild process */
 
     pid_t ppid = getpid();
     printf("Parent process PID: %d\n", ppid);
@@ -112,10 +96,6 @@ int main()
         nanosleep(&sleepFor, NULL);
     }
 
-exit:
-
-    exit(EXIT_SUCCESS);
-
 exit_failure:
 
     exit(EXIT_FAILURE);
@@ -132,14 +112,17 @@ void child_main(pid_t ppid)
     
     printf("Child process PID: %d\n", getpid());
 
+    /* prepare common sigaction */
+
+    struct sigaction sigHandler = { 0 };
+    sigemptyset(&sigHandler.sa_mask);
+	sigHandler.sa_flags = 0;
+
     /* handle parents end */
 
-    struct sigaction sigintHandler = { 0 };
-    sigemptyset(&sigintHandler.sa_mask);
-	sigintHandler.sa_handler = child_sigint_handler;
-	sigintHandler.sa_flags = 0;
+	sigHandler.sa_handler = child_sigint_handler;
 
-    rc = sigaction(SIGINT, &sigintHandler, NULL);
+    rc = sigaction(SIGINT, &sigHandler, NULL);
     if (-1 == rc)
         PERROR_EXIT();
 
@@ -155,16 +138,34 @@ void child_main(pid_t ppid)
         goto exit_failure;
     }
 
+    /* set alarm handler and start */
+
+	sigHandler.sa_handler = child_sigalrm_handler;
+
+    rc = sigaction(SIGALRM, &sigHandler, NULL);
+    if (-1 == rc)
+        PERROR_EXIT();
+
+    sigset_t set;
+    sigemptyset(&set);
+
+    alarm(ALRM_INTERVAL);
+
     /* work loop */
+
+    // race condition is here
+    // no guarantee that sigsuspend
+    // will bw executed before
+    // alarm handler is triggered
 
     while (1)
     {        
-        nanosleep(&sleepFor, NULL);
+        sigsuspend(&set);
+
+        printf("alarm cycle\n");
+
+        alarm(ALRM_INTERVAL);
     }
-
-exit:
-
-    exit(EXIT_SUCCESS);
 
 exit_failure:
 
@@ -188,45 +189,16 @@ void parent_sigchld_handler(int signum)
     
     while (1)
     {
-        // printf("1\n");       // order!
-    
         pid = waitpid(-1, &waitStatus, WNOHANG);
         if (0 >= pid)
             break;
-    
-        // printf("2\n");       // order!
-
-        // handle child exit status
-        int rc = -1;
-        
-        if (WIFEXITED(waitStatus))
-        {
-            rc = WEXITSTATUS(waitStatus);
-            rc += 48;
-            write(STDOUT_FILENO, 
-                  &rc, 
-                  sizeof(int));
-
-            const char* state = " <- exit\n";
-            write(STDOUT_FILENO, 
-                  state, 
-                  strlen(state));
-        }
-
-        if (WIFSIGNALED(waitStatus))
-        {
-            rc = WTERMSIG(waitStatus);
-            rc += 48;
-            write(STDOUT_FILENO, 
-                  &rc, 
-                  sizeof(int));
-
-            const char* state = " <- signal\n";
-            write(STDOUT_FILENO, 
-                  state, 
-                  strlen(state));
-        }
     }
 
+    return;
+}
+
+void child_sigalrm_handler(int signum)
+{
+    alarmFlag = 1;
     return;
 }
