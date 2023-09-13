@@ -10,6 +10,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/prctl.h>
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -22,23 +23,34 @@
 
 #define PERROR_EXIT()        { perror("fatal error"); goto exit_failure; }
 
-#define LOOP_SLEEP_S          1              // 0 sec
+#define LOOP_SLEEP_S          1              // 1 sec
 #define LOOP_SLEEP_NS         100000000      // 0.1 sec
 
-#define ALRM_INTERVAL         5
+#define SELECT_SLEEP_S        5              // 5 sec
+#define SELECT_SLEEP_NS       100000000      // 0.1 sec
+
+#define SIGPDEATH             SIGINT
 
 
 /* --------------------------------------------------------- */
 /*                        S T A T I C                        */
 /* --------------------------------------------------------- */
 
-struct timespec sleepFor =
+struct timespec sleepForLoop =
 {
-    .tv_sec = 0,
-    .tv_nsec = 0
+    .tv_sec = LOOP_SLEEP_S,
+    .tv_nsec = LOOP_SLEEP_NS
 };
 
-sig_atomic_t alarmFlag;     // guarantee that read and write operations are atomic
+struct timespec sleepForSelect =
+{
+    .tv_sec = SELECT_SLEEP_S,
+    .tv_nsec = SELECT_SLEEP_NS
+};
+
+// signal flags
+sig_atomic_t sigalrmFlag;
+sig_atomic_t sigpdeathFlag;
 
 
 /* --------------------------------------------------------- */
@@ -46,8 +58,7 @@ sig_atomic_t alarmFlag;     // guarantee that read and write operations are atom
 /* --------------------------------------------------------- */
 
 static void child_main(pid_t ppid);
-static void child_sigint_handler(int signum);
-static void child_sigalrm_handler(int signum);
+static void child_signals_handler(int signum);
 static void parent_sigchld_handler(int signum);
 
 
@@ -63,11 +74,6 @@ int main()
 
     pid_t ppid = getpid();
     printf("Parent process PID: %d\n", ppid);
-
-    /* prepare sleep structure */
-
-    sleepFor.tv_sec = LOOP_SLEEP_S;
-    sleepFor.tv_nsec = LOOP_SLEEP_NS;
 
     /* handle child end */
 
@@ -93,7 +99,7 @@ int main()
 
     while (1)
     {
-        nanosleep(&sleepFor, NULL);
+        nanosleep(&sleepForLoop, NULL);
     }
 
 exit_failure:
@@ -112,56 +118,85 @@ void child_main(pid_t ppid)
     
     printf("Child process PID: %d\n", getpid());
 
-    /* prepare common sigaction */
+    /* form child signals mask */
+
+    sigset_t set;
+    sigemptyset(&set);
+
+    sigaddset(&set, SIGALRM);
+    sigaddset(&set, SIGPDEATH);
+
+    rc = sigprocmask(SIG_BLOCK, &set, NULL);
+    if (-1 == rc)
+        PERROR_EXIT();
+
+    /* set signals handlers */
 
     struct sigaction sigHandler = { 0 };
     sigemptyset(&sigHandler.sa_mask);
 	sigHandler.sa_flags = 0;
 
-    /* handle parents end */
-
-	sigHandler.sa_handler = child_sigint_handler;
-
-    rc = sigaction(SIGINT, &sigHandler, NULL);
-    if (-1 == rc)
-        PERROR_EXIT();
-
-    rc = prctl(PR_SET_PDEATHSIG, SIGINT);
-    if (-1 == rc)
-        PERROR_EXIT();
-
-    /* avoid race condition in case if parent is already dead */
-
-    if (getppid() != ppid)
-    {
-        printf("Parent is already dead. Can't use prctl()\n");
-        goto exit_failure;
-    }
-
-    /* set alarm handler and start */
-
-	sigHandler.sa_handler = child_sigalrm_handler;
-
+	sigHandler.sa_handler = child_signals_handler;
     rc = sigaction(SIGALRM, &sigHandler, NULL);
     if (-1 == rc)
         PERROR_EXIT();
 
-    sigset_t set;
-    sigemptyset(&set);
+	sigHandler.sa_handler = child_signals_handler;
+    rc = sigaction(SIGPDEATH, &sigHandler, NULL);
+    if (-1 == rc)
+        PERROR_EXIT();
 
-    alarm(ALRM_INTERVAL);
+    /* handle parents end */
+
+    rc = prctl(PR_SET_PDEATHSIG, SIGPDEATH);
+    if (-1 == rc)
+        PERROR_EXIT();
+
+    if (getppid() != ppid)
+    {
+        // avoid race condition in case if parent is already dead
+        printf("Parent is already dead. Can't use prctl()\n");
+        goto exit_failure;
+    }
 
     /* work loop */
 
+    sigemptyset(&set);
+
     while (1)
     {        
-        sigsuspend(&set);
-        alarmFlag = 0;
+        pselect(0, NULL, NULL, NULL, &sleepForSelect, &set);
 
-        printf("alarm cycle\n");
+        /* 
+            no need to check return value, because:
+            - 0 and NULL args are always valid
+            - struct timespec is correct (programmer responsibility) and never changes
+            - EINTR checking is useless because getting signal is pselect() perpose
+        */
 
+        if (sigalrmFlag)
+        {
+            sigalrmFlag = 0;
+            continue;
+        }
 
-        alarm(ALRM_INTERVAL);
+        if (sigpdeathFlag)
+        {
+            const char* msgOnTerm = "Child is terminated by parent's termination\n";
+            write(STDOUT_FILENO, msgOnTerm, strlen(msgOnTerm));
+            abort();
+        }
+
+        /* 
+            if we are here it means that
+            pselect time expired instead 
+            of getting any signals
+            
+            it's possible to place timer-based
+            execution logic here
+        */
+
+        printf("pselect() time expired\n");
     }
 
 exit_failure:
@@ -169,14 +204,23 @@ exit_failure:
     exit(EXIT_FAILURE);
 }
 
-void child_sigint_handler(int signum)
+void child_signals_handler(int signum)
 {
-    const char* msgOnTerm = "Child is terminated by parent's termination\n";
-    write(STDOUT_FILENO, 
-          msgOnTerm, 
-          strlen(msgOnTerm));
+    switch (signum)
+    {
+    case SIGALRM:
+        sigalrmFlag = 1;
+        break;
 
-    abort();
+    case SIGPDEATH:
+        sigpdeathFlag = 1;
+        break;
+
+    default: 
+        break;
+    }
+
+    return;
 }
 
 void parent_sigchld_handler(int signum)
@@ -191,17 +235,5 @@ void parent_sigchld_handler(int signum)
             break;
     }
 
-    return;
-}
-
-void child_sigalrm_handler(int signum)
-{
-    // prevent race condition between
-    // first alarm() call and
-    // sigsuspend in work loop
-    if (alarmFlag)
-        alarm(ALRM_INTERVAL);
-
-    // no actual work is required
     return;
 }
